@@ -1,0 +1,21 @@
+# firebase.yaml
+# This file configures Firebase App Hosting.
+# It defines the backend service and the frontend web app.
+
+# Specifies the version of the App Hosting configuration schema.
+version: 1
+
+# Defines the backend service.
+backend:
+  # The command to start the server.
+  run: npm run start
+  # The location of the backend source code.
+  source: server
+
+# Defines the frontend web app.
+app:
+  # The command to build the frontend.
+  build: npm run build
+  # The directory containing the static build artifacts.
+  # This should match the 'public' directory in your old 'firebase.json'.
+  static_outputs: dist
