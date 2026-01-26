@@ -6,7 +6,7 @@
 
 This contains everything you need to run your app locally.
 
-View your app live at: https://kalakrutcreativekg-32420-ea326.web.app/
+View your app live at: https://kalakrutcreativekg1-3047-4bbf8.web.app/
 
 View your app in AI Studio: https://ai.studio/apps/drive/17ohbc4ycmB9lAqOO8yOEgGwEWDbZl8lp
 
