@@ -1,0 +1,12 @@
+# This file tells gcloud to ignore all files except those in the server/
+# directory. This is crucial for deploying a subdirectory as a service.
+
+# Ignore everything in the root directory.
+*.* 
+
+# Except for these files, which are needed for the build process
+!/.gcloudignore
+!/package.json
+
+# Now, un-ignore the server directory entirely.
+!server
