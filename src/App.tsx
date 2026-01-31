@@ -406,6 +406,9 @@ const AppContent: React.FC = () => {
             <div className="max-w-3xl mx-auto px-6 py-8">
                <button onClick={() => navigate('home')} className="flex items-center gap-2 text-kala-400 hover:text-white mb-6 transition-colors"><ArrowLeft className="w-4 h-4" /> Back to Home</button>
                <ArtistRegistration onComplete={() => { notify("Registration received!", "success"); navigate('home'); }} onBlockUser={handleBlockUser} />
+               <Suspense fallback={<PageLoader />}>
++                  <ArtistRegistration onComplete={() => { notify("Registration received!", "success"); navigate('home'); }} onBlockUser={handleBlockUser} />
++               </Suspense>
             </div>
          </div>
        );
