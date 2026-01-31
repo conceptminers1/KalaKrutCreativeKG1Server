@@ -25,7 +25,7 @@ const ServicesHub = React.lazy(() => import('./components/ServicesHub'));
 const AnalyticsDashboard = React.lazy(() => import('./components/AnalyticsDashboard'));
 const ArtistProfile = React.lazy(() => import('./components/ArtistProfile'));
 const Roster = React.lazy(() => import('./components/Roster'));
-const ArtistRegistration = React.lazy(() => import('./components/ArtistRegistration'));
+const ArtistRegistration = React.lazy(() => import('./components/ArtistRegistration_temp'));
 const AdminLeads = React.lazy(() => import('./components/AdminLeads'));
 const AdminEmailTemplates = React.lazy(() => import('./components/AdminEmailTemplates'));
 const AdminSupport = React.lazy(() => import('./components/AdminSupport'));
