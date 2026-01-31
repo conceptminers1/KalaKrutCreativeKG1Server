@@ -239,7 +239,7 @@ const AdminEmailTemplates: React.FC<{ isDemoMode: boolean }> = ({ isDemoMode }) 
                 readOnly={isDemoMode}
               />
             ) : (
-              <div className="w-full h-96 bg-kala-900 border border-kala-700/50 rounded-md p-4 text-sm leading-relaxed overflow-y-.auto">
+              <div className="w-full h-96 bg-kala-900 border border-kala-700/50 rounded-md p-4 text-sm leading-relaxed overflow-y-auto">
                 {renderBody()}
               </div>
             )}

@@ -75,7 +75,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries }) => {
                   </span>
                 </td>
                 <td className="py-4 text-right font-mono text-kala-secondary font-bold">
-                  {entry.user.xp.toLocaleString()} XP
+                  {entry.user.xp ? entry.user.xp.toLocaleString() : 0} XP
                 </td>
                 <td className="py-4 text-right pr-2">
                   <div className="flex items-center justify-end gap-1">

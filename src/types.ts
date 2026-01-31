@@ -7,7 +7,8 @@ export enum UserRole {
   REVELLER = 'Reveller',
   ORGANIZER = 'Organizer',
   DAO_MEMBER = 'DAO Member',
-  SERVICE_PROVIDER = 'Service Provider'
+  SERVICE_PROVIDER = 'Service Provider',
+  DAO_Governor = "DAO_Governor"
 }
 
 export interface SmartContractDraft {

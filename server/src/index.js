@@ -5,6 +5,7 @@ import sqlite3 from 'sqlite3';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import cors from 'cors';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dbPath = './tmp/dev.db';
@@ -15,6 +16,7 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const app = express();
+app.use(cors({ origin: 'http://localhost:3000' }));
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database', err.message);

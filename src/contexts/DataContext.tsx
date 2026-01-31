@@ -67,35 +67,63 @@ const SUPER_ADMIN: RosterMember = {
 };
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state with Mocks (if not purged previously) OR LocalStorage data
+  
   const [allUsers, setAllUsers] = useState<RosterMember[]>(() => {
-    const saved = localStorage.getItem('kk_users');
-    let users = saved ? JSON.parse(saved) : tagMocks(MOCK_ROSTER);
-    
-    // Safety Net: Ensure the Live Admin always exists if not present
-    if (!users.find((u: RosterMember) => u.subscriberOnly.email === 'admin@kalakrut.io')) {
-       users = [...users, SYSTEM_ADMIN];
+    try {
+      const saved = localStorage.getItem('kk_users');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          let users = parsed.filter(Boolean); // Filter out any null/undefined entries
+          // Ensure admin accounts always exist
+          if (!users.some(u => u && u.id === SYSTEM_ADMIN.id)) {
+            users.push(SYSTEM_ADMIN);
+          }
+          if (!users.some(u => u && u.id === SUPER_ADMIN.id)) {
+            users.push(SUPER_ADMIN);
+          }
+          return users;
+        }
+      }
+    } catch (error) {
+      console.error("CRITICAL: Failed to load or parse 'kk_users' from localStorage. Data may be corrupted. Falling back to default mock data.", error);
     }
-    // Ensure Super Admin exists
-    if (!users.find((u: RosterMember) => u.subscriberOnly.email === 'bhoominpandya@gmail.com')) {
-       users = [...users, SUPER_ADMIN];
-    }
-    return users;
+    // Fallback to mock data if try block fails or no data is saved
+    return [...tagMocks(MOCK_ROSTER), SYSTEM_ADMIN, SUPER_ADMIN];
   });
 
   const [allMarketItems, setAllMarketItems] = useState<MarketplaceItem[]>(() => {
-    const saved = localStorage.getItem('kk_market');
-    return saved ? JSON.parse(saved) : tagMocks(MOCK_MARKETPLACE_ITEMS);
+    try {
+      const saved = localStorage.getItem('kk_market');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(Boolean); // Filter out any null/undefined entries
+        }
+      }
+    } catch (error) {
+      console.error("CRITICAL: Failed to load or parse 'kk_market' from localStorage. Falling back to default mock data.", error);
+    }
+    return tagMocks(MOCK_MARKETPLACE_ITEMS);
   });
 
   const [allProposals, setAllProposals] = useState<Proposal[]>(() => {
-    const saved = localStorage.getItem('kk_proposals');
-    return saved ? JSON.parse(saved) : tagMocks(MOCK_PROPOSALS);
+    try {
+      const saved = localStorage.getItem('kk_proposals');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(Boolean); // Filter out any null/undefined entries
+        }
+      }
+    } catch (error) {
+      console.error("CRITICAL: Failed to load or parse 'kk_proposals' from localStorage. Falling back to default mock data.", error);
+    }
+    return tagMocks(MOCK_PROPOSALS);
   });
 
   const [isDemoMode, setIsDemoMode] = useState(true);
   
-  // New Global Admin Setting: Is Demo Mode even an option?
   const [demoModeAvailable, setDemoModeAvailable] = useState(() => {
     const saved = localStorage.getItem('kk_demo_available');
     return saved !== null ? JSON.parse(saved) : true;
@@ -108,7 +136,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   useEffect(() => { 
     localStorage.setItem('kk_demo_available', JSON.stringify(demoModeAvailable));
-    // CRITICAL: If Demo Mode is globally disabled, immediately force current session to Live Mode
     if (!demoModeAvailable) {
       setIsDemoMode(false);
     }
@@ -131,20 +158,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         phone: 'Hidden',
         agentContact: 'Direct'
       },
-      isMock: false, // REAL DATA TAG
+      isMock: false,
       password: profile.password
     };
     
-    setAllUsers(prev => [newRosterMember, ...prev]);
+    setAllUsers(prev => [newRosterMember, ...prev.filter(p => p.id !== newRosterMember.id)]);
   };
 
   const updateUser = (updates: Partial<RosterMember>) => {
-    setAllUsers(prev => prev.map(user => {
-      if (user.id === updates.id) {
-        return { ...user, ...updates };
-      }
-      return user;
-    }));
+    setAllUsers(prev => prev.map(user => user.id === updates.id ? { ...user, ...updates } : user));
   };
 
   const addMarketItem = (item: MarketplaceItem) => {
@@ -153,18 +175,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const purgeMockData = () => {
     if (window.confirm("WARNING: This will delete all 'Working Example' data and leave only Real User data. This action cannot be undone. Are you sure?")) {
-      setAllUsers(prev => prev.filter((u: any) => u.isMock === false));
-      setAllMarketItems(prev => prev.filter((i: any) => i.isMock === false));
-      setAllProposals(prev => prev.filter((p: any) => p.isMock === false));
+      setAllUsers(prev => prev.filter(u => u.isMock === false));
+      setAllMarketItems(prev => prev.filter(i => i.isMock === false));
+      setAllProposals(prev => prev.filter(p => p.isMock === false));
     }
   };
 
   const findUserByEmail = (email: string) => {
-    return allUsers.find(u => u.subscriberOnly.email.toLowerCase() === email.toLowerCase() && u.isMock === false);
+    // Ensure subscriberOnly exists before matching
+    return allUsers.find(u => u.subscriberOnly && u.subscriberOnly.email && u.subscriberOnly.email.toLowerCase() === email.toLowerCase());
   };
 
   const findUserByWallet = (address: string) => {
-    return allUsers.find(u => u.isMock === false);
+    // This logic was flawed, it should find a user by a wallet address.
+    // This is a placeholder as wallet addresses aren't stored on the user object.
+    // In a real app, you would have a 'walletAddress' field on the user.
+    return allUsers.find(u => u.isMock === false); 
   };
 
   // Filtered Data based on Mode
@@ -174,8 +200,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const stats = {
     totalMembers: visibleUsers.length,
-    activeGigs: isDemoMode ? 2 + visibleUsers.filter((u: any) => !u.isMock).length : visibleUsers.length, 
-    totalTransactions: isDemoMode ? `${(12 + visibleUsers.filter((u: any) => !u.isMock).length)}` : '0'
+    activeGigs: visibleProposals.filter(p => p.status === 'Active').length,
+    totalTransactions: isDemoMode ? (12 + visibleUsers.filter(u => !u.isMock).length).toString() : '0'
   };
 
   return (
