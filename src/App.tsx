@@ -404,10 +404,10 @@ const AppContent: React.FC = () => {
        return (
          <div className="min-h-screen bg-kala-900 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-6 py-8">
-               <button onClick={() => navigate('home')} className="flex items-center gap-2 text-kala-400 hover:text-white mb-6 transition-colors"><ArrowLeft className="w-4 h-4" /> Back to Home</butto
+               <button onClick={() => navigate('home')} className="flex items-center gap-2 text-kala-400 hover:text-white mb-6 transition-colors"><ArrowLeft className="w-4 h-4" /> Back to Home</button>
                <Suspense fallback={<PageLoader />}>
-+                  <ArtistRegistration onComplete={() => { notify("Registration received!", "success"); navigate('home'); }} onBlockUser={handleBlockUser} />
-+               </Suspense>
+                  <ArtistRegistration onComplete={() => { notify("Registration received!", "success"); navigate('home'); }} onBlockUser={handleBlockUser} />
+               </Suspense>
             </div>
          </div>
        );
