@@ -1,0 +1,123 @@
+# API Reference
+
+This document provides a reference for the API endpoints and includes examples of `curl` commands for each endpoint.
+
+## Users
+
+### Get all users
+
+`curl http://localhost:8080/api/users`
+
+### Create a new user
+
+`curl -X POST -H "Content-Type: application/json" -d '{"name": "testuser", "email": "test@user.com"}' http://localhost:8080/api/users`
+
+## Artist Profiles
+
+### Get all artist profiles
+
+`curl http://localhost:8080/api/artists`
+
+### Create a new artist profile
+
+`curl -X POST -H "Content-Type: application/json" -d '{"userId": 1, "bio": "A test artist", "location": "Testland"}' http://localhost:8080/api/artists`
+
+## Proposals
+
+### Get all proposals
+
+`curl http://localhost:8080/api/proposals`
+
+### Create a new proposal
+
+`curl -X POST -H "Content-Type: application/json" -d '{"title": "Test Proposal", "description": "This is a test proposal", "creatorId": 1}' http://localhost:8080/api/proposals`
+
+## Marketplace Items
+
+### Get all marketplace items
+
+`curl http://localhost:8080/api/marketplace-items`
+
+### Create a new marketplace item
+
+`curl -X POST -H "Content-Type: application/json" -d '{"title": "Test Item", "description": "This is a test item", "price": 9.99}' http://localhost:8080/api/marketplace-items`
+
+## Moderation Cases
+
+### Get all moderation cases
+
+`curl http://localhost:8080/api/moderation-cases`
+
+### Create a new moderation case
+
+`curl -X POST -H "Content-Type: application/json" -d '{"userId": 1, "reason": "Test case"}' http://localhost:8080/api/moderation-cases`
+
+## Transactions
+
+### Get all transactions
+
+`curl http://localhost:8080/api/transactions`
+
+### Create a new transaction
+
+`curl -X POST -H "Content-Type: application/json" -d '{"userId": 1, "amount": 100, "description": "Test transaction"}' http://localhost:8080/api/transactions`
+
+## Support Tickets
+
+### Get all support tickets
+
+`curl http://localhost:8080/api/support-tickets`
+
+### Create a new support ticket
+
+`curl -X POST -H "Content-Type: application/json" -d '{"userId": 1, "subject": "Test Ticket", "description": "This is a test ticket"}' http://localhost:8080/api/support-tickets`
+
+## Forum Threads
+
+### Get all forum threads
+
+`curl http://localhost:8080/api/forum-threads`
+
+### Create a new forum thread
+
+`curl -X POST -H "Content-Type: application/json" -d '{"authorId": 1, "title": "Test Thread", "body": "This is a test thread"}' http://localhost:8080/api/forum-threads`
+
+## Treasury Assets
+
+### Get all treasury assets
+
+`curl http://localhost:8080/api/treasury-assets`
+
+### Create a new treasury asset
+
+`curl -X POST -H "Content-Type: application/json" -d '{"name": "Test Asset", "balance": 1000}' http://localhost:8080/api/treasury-assets`
+
+## Staff Members
+
+### Get all staff members
+
+`curl http://localhost:8080/api/staff-members`
+
+### Create a new staff member
+
+`curl -X POST -H "Content-Type: application/json" -d '{"name": "Test Staff", "role": "Tester"}' http://localhost:8080/api/staff-members`
+
+## Equity Opportunities
+
+### Get all equity opportunities
+
+`curl http://localhost:8080/api/equity-opportunities`
+
+### Create a new equity opportunity
+
+`curl -X POST -H "Content-Type: application/json" -d '{"artistProfileId": 1, "title": "Test Opportunity", "description": "This is a test opportunity."}' http://localhost:8080/api/equity-opportunities`
+
+## Lead Queries
+
+### Get all lead queries
+
+`curl http://localhost:8080/api/lead-queries`
+
+### Create a new lead query
+
+`curl -X POST -H "Content-Type: application/json" -d '{"artistProfileId": 1, "query": "Test Query"}' http://localhost:8080/api/lead-queries`

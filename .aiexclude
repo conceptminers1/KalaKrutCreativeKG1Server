@@ -1,0 +1,12 @@
+# Directories
+node_modules
+dist
+build
+.next
+.idx
+docs
+server/prisma/dev.db
+
+# Lock files
+package-lock.json
+yarn.lock
