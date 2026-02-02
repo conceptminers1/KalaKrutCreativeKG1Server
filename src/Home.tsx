@@ -277,7 +277,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
           </div>
         </div>
       </div>
-
+      
       {/* Login Portal Section */}
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
@@ -288,15 +288,29 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <LoginCard role={UserRole.ARTIST} icon={Music} desc="Manage your EPK, accept bookings, and sell merch." />
           <LoginCard role={UserRole.VENUE} icon={Building2} desc="Scout talent and manage event calendars." />
-          <LoginCard role={UserRole.REVELLER} icon={Users} desc="Buy tickets and follow your favorite artists." />
-          <LoginCard role={UserRole.ADMIN} icon={ShieldCheck} desc="Platform oversight and analytics." />
-          <LoginCard role={UserRole.DAO_Governor} icon={ShieldCheck} desc="Govern the DAO and its Business." />
-          <LoginCard role={UserRole.DAO_MEMBER} icon={Globe2} desc="Create proposals and Vote on proposals" />
           <LoginCard role={UserRole.SERVICE_PROVIDER} icon={Users} desc="Offer consultancy or production services." />
           <LoginCard role={UserRole.ORGANIZER} icon={Building2} desc="Plan festivals and manage lineups." />
           <LoginCard role={UserRole.SPONSOR} icon={Coins} desc="Fund events and support artists." />
+          <LoginCard role={UserRole.REVELLER} icon={Users} desc="Buy tickets and follow your favorite artists." />
+          <LoginCard role={UserRole.ADMIN} icon={ShieldCheck} desc="Platform oversight and analytics." />
+          <LoginCard role={UserRole.DAO_Governor} icon={ShieldCheck} desc="Govern the DAO and its Business." />
+          <LoginCard role={UserRole.DAO_MEMBER} icon={Globe2} desc="Create proposals and Vote on proposals" />  
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-kala-900 border-t border-kala-800 py-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+           <div className="text-kala-500 text-sm"> &copy; 2024 KalaKrut Creative. All rights reserved. </div>
+           <div className="flex gap-4">
+              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <XIcon className="w-4 h-4" /> </a>
+              <a href="https://www.instagram.com/kalakrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Instagram className="w-4 h-4" /> </a>
+              <a href="https://www.facebook.com/kalakrutagn" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Facebook className="w-4 h-4" /> </a>
+              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <SubstackIcon className="w-4 h-4" /> </a>
+              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <DiscordIcon className="w-4 h-4" /> </a>
+              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <LinktreeIcon className="w-4 h-4" /> </a>
+           </div>
+        </div>
 
       {/* Footer */}
       <footer className="bg-kala-900 border-t border-kala-800 py-12">
