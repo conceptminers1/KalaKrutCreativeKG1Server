@@ -288,13 +288,13 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <LoginCard role={UserRole.ARTIST} icon={Music} desc="Manage your EPK, accept bookings, and sell merch." />
           <LoginCard role={UserRole.VENUE} icon={Building2} desc="Scout talent and manage event calendars." />
-          <LoginCard role={UserRole.REVELLER} icon={Users} desc="Buy tickets and follow your favorite artists." />
-          <LoginCard role={UserRole.ADMIN} icon={ShieldCheck} desc="Platform oversight and analytics." />
-          <LoginCard role={UserRole.DAO_Governor} icon={ShieldCheck} desc="Govern the DAO and its Business." />
-          <LoginCard role={UserRole.DAO_MEMBER} icon={Globe2} desc="Create proposals and Vote on proposals" />
           <LoginCard role={UserRole.SERVICE_PROVIDER} icon={Users} desc="Offer consultancy or production services." />
           <LoginCard role={UserRole.ORGANIZER} icon={Building2} desc="Plan festivals and manage lineups." />
           <LoginCard role={UserRole.SPONSOR} icon={Coins} desc="Fund events and support artists." />
+          <LoginCard role={UserRole.REVELLER} icon={Users} desc="Buy tickets and follow your favorite artists." />
+          <LoginCard role={UserRole.ADMIN} icon={ShieldCheck} desc="Platform oversight and analytics." />
+          <LoginCard role={UserRole.DAO_Governor} icon={ShieldCheck} desc="Govern the DAO and its Business." />
+          <LoginCard role={UserRole.DAO_MEMBER} icon={Globe2} desc="Create proposals and Vote on proposals" />  
         </div>
       </div>
 
