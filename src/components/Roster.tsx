@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { knowledgeGraph } from '../services/knowledgeGraphService';
-import PaymentGateway from './PaymentGateway';
+import PaymentGateway from '../components/PaymentGateway';
 import { 
   Lock, Unlock, ShieldCheck, MapPin, Star, Briefcase, Music, Calendar, Headphones, Ticket, Layers, Search, ShieldAlert
 } from 'lucide-react';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface RosterProps {
   onNavigate: (view: string) => void;
@@ -13,7 +13,7 @@ interface RosterProps {
 }
 
 const Roster: React.FC<RosterProps> = ({ onNavigate, onViewProfile }) => {
-  const { notify } = useToast();
+  const { showToast } = useToast();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showPayment, setShowPayment] = useState(false);
@@ -205,7 +205,7 @@ const Roster: React.FC<RosterProps> = ({ onNavigate, onViewProfile }) => {
            onSuccess={(method) => { 
              setIsSubscribed(true); 
              setShowPayment(false); 
-             notify("Roster Access Unlocked! You can now view contacts and ratings.", "success");
+             showToast("Roster Access Unlocked! You can now view contacts and ratings.", "success");
            }}
            onCancel={() => setShowPayment(false)}
          />

@@ -1,301 +1,254 @@
 
-import React, { useState, useTransition } from 'react';
-import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { 
-  User, Music, Link, Twitter, Instagram, Globe, PlusCircle, Trash2, ArrowRight, 
-  UploadCloud, X, Loader2, Disc, UserPlus, FileText, Briefcase, Handshake, MapPin
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Mail, MapPin, Music, Link as LinkIcon, Save, DollarSign, Briefcase, ShieldAlert, Search, BrainCircuit } from 'lucide-react';
+import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
+import { useToast } from '../contexts/ToastContext';
+import { useData } from '../contexts/DataContext';
 import { UserRole } from '../types';
-import { useToast } from './ToastContext';
-import { MODERATION_WARNING_TEXT } from '../services/moderationService';
-
-const socialLinkSchema = z.object({
-  platform: z.string().nonempty("Platform is required"),
-  url: z.string().url("Must be a valid URL"),
-});
-
-const portfolioItemSchema = z.object({
-  title: z.string().nonempty("Title is required"),
-  url: z.string().url("Must be a valid URL"),
-  description: z.string().optional(),
-});
-
-const artistRegistrationSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-  artistName: z.string().min(2, "Artist/band name is required"),
-  genre: z.string().nonempty("Genre is required"),
-  location: z.string().nonempty("Location is required"),
-  bio: z.string().min(50, "Bio must be at least 50 characters"),
-  avatar: z.any().refine(file => file?.length == 1, "Avatar image is required."),
-  socialLinks: z.array(socialLinkSchema).optional(),
-  portfolio: z.array(portfolioItemSchema).optional(),
-  role: z.nativeEnum(UserRole),
-  termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms and conditions"),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type ArtistRegistrationFormValues = z.infer<typeof artistRegistrationSchema>;
+import { searchArtist } from '../services/musicBrainzService';
+import { Artist } from '../data/knowledgeGraphSchema';
 
 interface ArtistRegistrationProps {
-  onRegister: (data: ArtistRegistrationFormValues) => void;
-  onBackToHome: () => void;
+   onComplete: () => void;
+   onBlockUser: () => void;
 }
 
-const ArtistRegistration: React.FC<ArtistRegistrationProps> = ({ onRegister, onBackToHome }) => {
+const ArtistRegistration: React.FC<ArtistRegistrationProps> = ({ onComplete, onBlockUser }) => {
   const { notify } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    setValue,
-  } = useForm<ArtistRegistrationFormValues>({
-    resolver: zodResolver(artistRegistrationSchema),
-    defaultValues: {
-      socialLinks: [],
-      portfolio: [],
-      role: UserRole.ARTIST, // Default role
-    },
+  const { addUser } = useData();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    stageName: '',
+    location: '',
+    genres: '',
+    bio: '',
+    portfolioUrl: '',
+    ratePerGig: '',
+    skills: '',
+    equipment: '',
+    musicBrainzId: ''
   });
+  const [musicBrainzSearch, setMusicBrainzSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<Artist[]>([]);
+  const [selectedArtist, setSelectedArtist] = useState<Artist | null>(null);
 
-  const { fields: socialFields, append: appendSocial, remove: removeSocial } = useFieldArray({
-    control,
-    name: "socialLinks",
-  });
+  const handleSearch = async () => {
+    if (!musicBrainzSearch) return;
+    const results = await searchArtist(musicBrainzSearch);
+    setSearchResults(results);
+    if (results.length === 0) {
+      notify('No artists found on MusicBrainz with that name.', 'warning');
+    }
+  };
 
-  const { fields: portfolioFields, append: appendPortfolio, remove: removePortfolio } = useFieldArray({
-    control,
-    name: "portfolio",
-  });
-
-  const selectedRole = watch("role");
-
-  const onSubmit: SubmitHandler<ArtistRegistrationFormValues> = (data) => {
-    startTransition(() => {
-      setIsLoading(true);
-      console.log(data);
-      // Simulate API call
-      setTimeout(() => {
-        setIsLoading(false);
-        notify("Registration successful! Welcome to KalaKrut.", "success");
-        onRegister(data);
-      }, 1500);
+  const handleSelectArtist = (artist: Artist) => {
+    setSelectedArtist(artist);
+    setFormData({
+      ...formData,
+      stageName: artist.name,
+      bio: artist.bio || formData.bio,
+      musicBrainzId: artist.id
     });
+    setSearchResults([]);
   };
 
-  const InputField = ({ name, label, type = "text", icon: Icon, error, required = true }: any) => (
-    <div className="relative">
-      <label htmlFor={name} className="block text-xs font-medium text-kala-400 mb-1">{label}</label>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className="w-4 h-4 text-kala-500" />
-        </div>
-        <input
-          id={name}
-          type={type}
-          {...register(name)}
-          required={required}
-          className={`w-full bg-kala-900 border ${error ? 'border-red-500' : 'border-kala-700'} rounded-md pl-10 pr-3 py-2 text-sm text-white focus:border-kala-secondary focus:ring-0 outline-none transition-colors`}
-        />
-      </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error.message}</p>}
-    </div>
-  );
-
-  const FileInputField = ({ name, label, icon: Icon, error, accept }: any) => (
-    <div className="relative">
-      <label htmlFor={name} className="block text-xs font-medium text-kala-400 mb-1">{label}</label>
-      <div className={`flex items-center w-full bg-kala-900 border ${error ? 'border-red-500' : 'border-kala-700'} rounded-md text-sm text-white focus:border-kala-secondary focus:ring-0 outline-none transition-colors`}>
-        <div className="pl-3 pr-2 border-r border-kala-700">
-          <Icon className="w-4 h-4 text-kala-500" />
-        </div>
-        <input
-          id={name}
-          type="file"
-          accept={accept}
-          {...register(name)}
-          className="w-full p-2 text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-kala-700 file:text-kala-300 hover:file:bg-kala-600"
-        />
-      </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error.message}</p>}
-    </div>
-  );
-
-  const roleConfig = {
-    [UserRole.ARTIST]: {
-      title: "Artist / Band",
-      icon: Music,
-      fields: ["artistName", "genre"]
-    },
-    [UserRole.VENUE]: {
-      title: "Venue / Promoter",
-      icon: Briefcase,
-      fields: ["venueName", "capacity"]
-    },
-    [UserRole.SERVICE_PROVIDER]: {
-      title: "Service Provider",
-      icon: Handshake,
-      fields: ["serviceType", "companyName"]
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const getRoleSpecificTitle = () => {
-    switch(selectedRole) {
-      case UserRole.ARTIST: return "Artist/Band Name";
-      case UserRole.VENUE: return "Venue/Company Name";
-      case UserRole.SERVICE_PROVIDER: return "Service/Brand Name";
-      default: return "Creative Name";
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const valuesToCheck = Object.values(formData).join(' ');
+    if (checkContentForViolation(valuesToCheck)) {
+       onBlockUser();
+       return;
     }
+
+    const tempPassword = Math.random().toString(36).slice(-8);
+
+    const newUserProfile = {
+      id: `u-${Date.now()}`,
+      name: formData.stageName || `${formData.firstName} ${formData.lastName}`,
+      role: UserRole.ARTIST,
+      avatar: 'https://picsum.photos/seed/' + Date.now() + '/200',
+      location: formData.location,
+      genres: formData.genres.split(',').map(s => s.trim()),
+      bio: formData.bio,
+      email: formData.email,
+      password: tempPassword,
+      verified: false,
+      pressKit: { photos: [], topTracks: [], techRiderUrl: '', socials: [] },
+      stats: { gigsCompleted: 0, activeGigs: 0, rating: 0, responseTime: 'N/A' },
+      level: 1,
+      xp: 0,
+      musicBrainzId: formData.musicBrainzId
+    };
+
+    addUser(newUserProfile as any);
+    
+    notify(`Account created! Confirmation sent to ${formData.email}. Password: ${tempPassword}`, "success");
+    
+    console.log("--- SIMULATED EMAIL ---");
+    console.log(`To: ${formData.email}`);
+    console.log(`Subject: Welcome to KalaKrut!`);
+    console.log(`Body: Your account has been created. Your temporary password is: ${tempPassword}`);
+    console.log("-----------------------");
+
+    onComplete();
   };
 
   return (
-    <div className="min-h-screen bg-kala-900 text-slate-200 flex items-center justify-center p-4">
-      <div className="relative w-full max-w-4xl bg-kala-800/50 border border-kala-700 rounded-2xl shadow-2xl my-12">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[150px] bg-kala-secondary/10 rounded-full blur-3xl -z-10"></div>
-        
-        <button onClick={onBackToHome} className="absolute top-4 right-4 text-kala-500 hover:text-white">
-           <X />
-        </button>
-
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <UserPlus className="w-12 h-12 mx-auto mb-4 text-kala-secondary bg-kala-secondary/10 p-3 rounded-full"/>
-            <h1 className="text-3xl font-bold text-white">Join the KalaKrut Collective</h1>
-            <p className="text-kala-400 mt-2">Register your creative profile to start connecting and collaborating.</p>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            
-            {/* Role Selection */}
-            <div className="p-4 bg-kala-900 rounded-lg border border-kala-700">
-              <h3 className="text-sm font-bold text-white mb-3">I am a...</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {(Object.keys(UserRole) as Array<keyof typeof UserRole>).map(roleKey => (
-                  <button
-                    key={roleKey}
-                    type="button"
-                    onClick={() => setValue('role', UserRole[roleKey])}
-                    className={`p-3 rounded-md text-sm text-left border transition-all flex flex-col items-center justify-center h-24 gap-2 ${ selectedRole === UserRole[roleKey] ? 'bg-kala-secondary/10 text-kala-secondary border-kala-secondary' : 'bg-kala-800 border-kala-700 hover:bg-kala-700' }`}
-                  >
-                    <User className="w-6 h-6 mb-1"/> 
-                    <span className="font-bold">{UserRole[roleKey]}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-6 p-6 bg-kala-900 rounded-lg border border-kala-700">
-                <h3 className="text-lg font-bold text-white border-b border-kala-700 pb-2 mb-4">Core Information</h3>
-                <InputField name="name" label="Your Full Name" icon={User} error={errors.name} />
-                <InputField name="email" label="Email Address" type="email" icon={User} error={errors.email} />
-                <InputField name="password" label="Password" type="password" icon={User} error={errors.password} />
-                <InputField name="confirmPassword" label="Confirm Password" type="password" icon={User} error={errors.confirmPassword} />
-                
-                <h3 className="text-lg font-bold text-white border-b border-kala-700 pb-2 mb-4 pt-4">Profile Details</h3>
-                <InputField name="artistName" label={getRoleSpecificTitle()} icon={Disc} error={errors.artistName} />
-                <InputField name="genre" label="Primary Genre / Service" icon={Music} error={errors.genre} />
-                <InputField name="location" label="Location (City, Country)" icon={MapPin} error={errors.location} />
-                <FileInputField name="avatar" label="Avatar/Profile Picture" icon={UploadCloud} error={errors.avatar} accept="image/*" />
-                
-                <div>
-                  <label htmlFor="bio" className="block text-xs font-medium text-kala-400 mb-1">Bio / Description</label>
-                  <textarea
-                    id="bio"
-                    {...register("bio")}
-                    rows={5}
-                    className={`w-full bg-kala-900 border ${errors.bio ? 'border-red-500' : 'border-kala-700'} rounded-md px-3 py-2 text-sm text-white focus:border-kala-secondary focus:ring-0 outline-none transition-colors`}
-                    placeholder={`Tell us about your work, style, and what you do as a ${selectedRole}...`}
-                  />
-                  {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio.message}</p>}
-                  <p className="text-xs text-kala-500 mt-2 p-2 bg-kala-900/50 rounded">{MODERATION_WARNING_TEXT}</p>
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="space-y-6 p-6 bg-kala-900 rounded-lg border border-kala-700">
-                <h3 className="text-lg font-bold text-white border-b border-kala-700 pb-2 mb-4">Social & Portfolio Links</h3>
-
-                {/* Social Links */}
-                <div>
-                  {socialFields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-2 mb-3">
-                      <InputField name={`socialLinks.${index}.platform`} label="Platform" icon={Globe} error={errors.socialLinks?.[index]?.platform} />
-                      <InputField name={`socialLinks.${index}.url`} label="URL" icon={Link} error={errors.socialLinks?.[index]?.url} />
-                      <button type="button" onClick={() => removeSocial(index)} className="px-3 py-2 bg-red-500/10 text-red-400 rounded-md hover:bg-red-500/20 mb-1">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={() => appendSocial({ platform: ' ', url: ' ' })} className="text-xs flex items-center gap-2 text-kala-secondary font-bold">
-                    <PlusCircle className="w-4 h-4" /> Add Social Link
-                  </button>
-                </div>
-
-                <div className="border-t border-kala-700"></div>
-
-                {/* Portfolio Links */}
-                <div>
-                  {portfolioFields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-2 mb-3">
-                      <InputField name={`portfolio.${index}.title`} label="Title" icon={FileText} error={errors.portfolio?.[index]?.title} />
-                      <InputField name={`portfolio.${index}.url`} label="URL" icon={Link} error={errors.portfolio?.[index]?.url} />
-                      <button type="button" onClick={() => removePortfolio(index)} className="px-3 py-2 bg-red-500/10 text-red-400 rounded-md hover:bg-red-500/20 mb-1">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={() => appendPortfolio({ title: ' ', url: ' ' })} className="text-xs flex items-center gap-2 text-kala-secondary font-bold">
-                    <PlusCircle className.w-4 h-4" /> Add Portfolio Link
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Submission */}
-            <div className="p-6 bg-kala-900 rounded-lg border border-kala-700">
-               <div className="flex items-start gap-4">
-                  <input 
-                     id="termsAccepted" 
-                     type="checkbox" 
-                     {...register("termsAccepted")} 
-                     className="mt-1 h-4 w-4 rounded border-gray-300 text-kala-secondary focus:ring-kala-secondary"
-                  />
-                  <div>
-                     <label htmlFor="termsAccepted" className="font-medium text-white">Agree to Terms</label>
-                     <p className="text-xs text-kala-400">By registering, you agree to KalaKrut's <a href="#" className="text-kala-secondary hover:underline">Terms of Service</a> and <a href="#" className="text-kala-secondary hover:underline">DAO Constitution</a>.</p>
-                     {errors.termsAccepted && <p className="text-xs text-red-500 mt-1">{errors.termsAccepted.message}</p>}
-                  </div>
-               </div>
-
-               <button 
-                  type="submit" 
-                  disabled={isLoading || isPending}
-                  className="mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 bg-kala-secondary text-kala-900 font-bold rounded-lg hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading || isPending ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> Registering Profile...</>
-                  ) : (
-                    <>Complete Registration <ArrowRight className="w-5 h-5" /></>
-                  )}
-              </button>
-            </div>
-
-          </form>
-        </div>
+    <div className="max-w-3xl mx-auto pb-10">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-white mb-2">Join the Community</h1>
+        <p className="text-kala-400">
+          Complete your profile to be listed in the Roster. We use these details to match you with opportunities.
+        </p>
       </div>
+
+      <form onSubmit={handleSubmit} className="bg-kala-800/50 border border-kala-700 rounded-2xl p-8 space-y-6">
+        
+        <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-3 flex items-start gap-3">
+           <ShieldAlert className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+           <p className="text-xs text-red-200">{MODERATION_WARNING_TEXT}</p>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <BrainCircuit className="text-kala-secondary w-5 h-5" /> Knowledge Graph Link
+          </h3>
+          <p className="text-sm text-kala-300 mb-2">
+            Bootstrap your profile by linking to an existing MusicBrainz artist entry. This will pre-fill your name and bio.
+          </p>
+          <div className="flex gap-2">
+            <input 
+              value={musicBrainzSearch} 
+              onChange={(e) => setMusicBrainzSearch(e.target.value)}
+              className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" 
+              placeholder="Search for your artist name on MusicBrainz..." 
+            />
+            <button type="button" onClick={handleSearch} className="bg-kala-secondary text-kala-900 font-bold py-2 px-4 rounded-lg hover:bg-cyan-400 transition-colors flex items-center justify-center gap-2">
+              <Search className="w-5 h-5" /> Search
+            </button>
+          </div>
+          {searchResults.length > 0 && (
+            <div className="mt-4 bg-kala-900/50 border border-kala-700 rounded-lg p-4 max-h-60 overflow-y-auto">
+              <h4 className="text-white font-bold mb-2">Select your artist profile:</h4>
+              <ul>
+                {searchResults.map(artist => (
+                  <li key={artist.id}>
+                    <button type="button" onClick={() => handleSelectArtist(artist)} className="w-full text-left p-2 hover:bg-kala-700 rounded-md">
+                      <p className="font-bold">{artist.name}</p>
+                      <p className="text-sm text-kala-400">{artist.bio}</p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {selectedArtist && (
+             <div className="bg-green-900/20 border border-green-500/30 rounded-xl p-3 flex items-center gap-3">
+                 <BrainCircuit className="w-5 h-5 text-green-400 shrink-0" />
+                 <p className="text-sm text-green-200">
+                     Profile linked to MusicBrainz artist: <span className="font-bold">{selectedArtist.name}</span>
+                 </p>
+             </div>
+        )}
+
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <User className="text-kala-secondary w-5 h-5" /> Identity
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">First Name</label>
+              <input required name="firstName" onChange={handleChange} value={formData.firstName} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="Jane" />
+            </div>
+            <div>
+              <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Last Name</label>
+              <input required name="lastName" onChange={handleChange} value={formData.lastName} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="Doe" />
+            </div>
+            <div className="md:col-span-2">
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Artist / Stage Name</label>
+               <input required name="stageName" onChange={handleChange} value={formData.stageName} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="e.g. Neon Pulse" />
+            </div>
+             <div className="md:col-span-2">
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Email Address</label>
+               <div className="relative">
+                 <Mail className="absolute left-3 top-2.5 w-4 h-4 text-kala-500" />
+                 <input required type="email" name="email" onChange={handleChange} value={formData.email} className="w-full bg-kala-900 border border-kala-700 rounded-lg pl-10 pr-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="jane@example.com" />
+               </div>
+               <p className="text-[10px] text-kala-500 mt-1">A confirmation email with your password will be sent here.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-kala-700/50"></div>
+
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Music className="text-purple-400 w-5 h-5" /> Creative Profile
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Location</label>
+               <div className="relative">
+                 <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-kala-500" />
+                 <input required name="location" onChange={handleChange} value={formData.location} className="w-full bg-kala-900 border border-kala-700 rounded-lg pl-10 pr-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="City, Country" />
+               </div>
+             </div>
+             <div>
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Genres</label>
+               <input required name="genres" onChange={handleChange} value={formData.genres} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="Techno, Ambient, Jazz" />
+             </div>
+             <div className="md:col-span-2">
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Skills / Assets</label>
+               <input name="skills" onChange={handleChange} value={formData.skills} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="e.g. Sound Design, Piano, Logic Pro X" />
+             </div>
+             <div className="md:col-span-2">
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Equipment List (Available for Rent/Use)</label>
+               <input name="equipment" onChange={handleChange} value={formData.equipment} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="e.g. Fender Strat, Pioneer CDJs" />
+             </div>
+             <div className="md:col-span-2">
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Bio</label>
+               <textarea required name="bio" rows={4} onChange={handleChange} value={formData.bio} className="w-full bg-kala-900 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-kala-secondary resize-none" placeholder="Tell us about your artistic journey..." />
+             </div>
+          </div>
+        </div>
+
+        <div className="border-t border-kala-700/50"></div>
+
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Briefcase className="text-green-400 w-5 h-5" /> Professional Details
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div>
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Portfolio / Press Kit URL</label>
+               <div className="relative">
+                 <LinkIcon className="absolute left-3 top-2.5 w-4 h-4 text-kala-500" />
+                 <input name="portfolioUrl" onChange={handleChange} value={formData.portfolioUrl} className="w-full bg-kala-900 border border-kala-700 rounded-lg pl-10 pr-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="https://..." />
+               </div>
+             </div>
+             <div>
+               <label className="block text-xs text-kala-400 mb-1 uppercase font-bold">Standard Rate (Starting)</label>
+               <div className="relative">
+                 <DollarSign className="absolute left-3 top-2.5 w-4 h-4 text-kala-500" />
+                 <input name="ratePerGig" onChange={handleChange} value={formData.ratePerGig} className="w-full bg-kala-900 border border-kala-700 rounded-lg pl-10 pr-4 py-2 text-white outline-none focus:border-kala-secondary" placeholder="500" />
+               </div>
+             </div>
+          </div>
+        </div>
+
+        <button type="submit" className="w-full bg-kala-secondary text-kala-900 font-bold py-4 rounded-xl hover:bg-cyan-400 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-cyan-900/20">
+           <Save className="w-5 h-5" /> Save Profile & Register
+        </button>
+      </form>
     </div>
   );
 };

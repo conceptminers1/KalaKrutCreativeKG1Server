@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { MOCK_PROPOSALS, MOCK_USERS_BY_ROLE } from '../mockData';
 import { UserRole, SmartContractDraft } from '../types';
-import ContractEditor from './ContractEditor';
-import { useToast } from './ToastContext';
+import ContractEditor from '../components/ContractEditor';
+import { useToast } from '../contexts/ToastContext';
 
 interface AdminContract {
   id: string;

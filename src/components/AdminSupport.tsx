@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { LifeBuoy, AlertCircle, CheckCircle, Clock, Filter, ArrowUpCircle, ShieldAlert, Gavel, X, Unlock, ShieldCheck } from 'lucide-react';
 import { SupportTicket, ModerationCase } from '../types';

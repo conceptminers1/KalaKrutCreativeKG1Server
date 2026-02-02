@@ -1,5 +1,4 @@
-
-import { Artist, Member, Release, Track, Venue, Event, Sponsor, Nft, MarketplaceListing, PerformedAt, Wrote, Released, CollaboratedWith, Sponsored, HostedAt, HasMember, Produced, AssociatedWith } from '../knowledgeGraphSchema';
+import { Artist, Member, Release, Track, Venue, Event, Sponsor, Nft, MarketplaceListing, PerformedAt, Wrote, Released, CollaboratedWith, Sponsored, HostedAt, HasMember, Produced, AssociatedWith } from '../data/knowledgeGraphSchema';
 import { MOCK_PROPOSALS, MOCK_ROSTER } from '../mockData';
 
 class KnowledgeGraph {

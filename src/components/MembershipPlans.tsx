@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { SubscriptionPlan, User } from '../types';
 import { Check, ShieldCheck, LifeBuoy, Crown, Zap, Star, Lock, Unlock, TrendingUp, AlertCircle } from 'lucide-react';
-import PaymentGateway from './PaymentGateway';
-import { useToast } from './ToastContext';
+import PaymentGateway from '../components/PaymentGateway';
+import { useToast } from '../contexts/ToastContext';
 
 const PLANS: SubscriptionPlan[] = [
   {

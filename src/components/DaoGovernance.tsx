@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { Proposal, UserRole } from '../types';
-import { Artist } from '../knowledgeGraphSchema';
+import { Artist } from '../data/knowledgeGraphSchema';
 import { MOCK_PROPOSALS } from '../mockData';
 import { FileText, ThumbsUp, ThumbsDown, Clock, Lock, ShieldAlert, CheckCircle, Zap, Ban, Plus, X, RefreshCw, DollarSign, BrainCircuit, Search } from 'lucide-react';
-import { useWallet } from '../WalletContext';
-import { useToast } from './ToastContext';
+import { useWallet } from '../contexts/WalletContext';
+import { useToast } from '../contexts/ToastContext';
 import { knowledgeGraph } from '../services/knowledgeGraphService';
 
 interface DaoGovernanceProps {

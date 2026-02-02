@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ForumThread } from '../types';
 import { MessageSquare, Users, Eye, Clock, Plus, Filter, Search, X, ShieldAlert } from 'lucide-react';
 import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 const MOCK_THREADS: ForumThread[] = [
   {

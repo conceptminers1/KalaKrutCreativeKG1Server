@@ -38,8 +38,8 @@ import {
   KeyRound,
   Trash
 } from 'lucide-react';
-import UserGuide from './UserGuide';
-import { useToast } from './ToastContext';
+import UserGuide from '../components/UserGuide';
+import { useToast } from '../contexts/ToastContext';
 
 interface ArtistProfileProps {
   artist: IArtistProfile;

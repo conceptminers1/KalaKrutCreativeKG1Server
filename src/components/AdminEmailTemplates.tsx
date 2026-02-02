@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Edit, Save, Send, Eye, X, Code, AlertTriangle } from 'lucide-react';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 // Mock data for email templates. In a real application, you would fetch this from a database.
 const mockTemplates = [

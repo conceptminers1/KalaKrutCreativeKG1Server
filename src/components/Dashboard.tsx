@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { useData } from '../contexts/DataContext';
-import { useWallet } from '../WalletContext';
+import { useWallet } from '../contexts/WalletContext';
 import { UserRole } from '../types';
 import { BarChart3, Users, DollarSign, Activity, Calendar, ShieldCheck, ArrowRight, FileText, Wallet, TrendingUp, CreditCard } from 'lucide-react';
-import WalletHistory from './WalletHistory';
-import Leaderboard from './Leaderboard';
+import WalletHistory from '../components/WalletHistory';
+import Leaderboard from '../components/Leaderboard';
 import { MOCK_LEADERBOARD } from '../mockData';
 
 interface DashboardProps {

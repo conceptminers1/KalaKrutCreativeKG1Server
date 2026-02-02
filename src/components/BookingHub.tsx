@@ -1,13 +1,12 @@
-
 import React, { useState } from 'react';
 import { Calendar, MapPin, DollarSign, Sparkles, CheckCircle, Loader2, Users, Briefcase, Ticket, Send, FileText, AlertCircle, XCircle, Plus, Trash2, ListChecks, Lock, Unlock, ShieldAlert, Coins, RefreshCw, FileCode } from 'lucide-react';
 import { generateEventDescription } from '../services/geminiService';
-import PaymentGateway from './PaymentGateway';
+import PaymentGateway from '../components/PaymentGateway';
 import { MOCK_ROSTER, MOCK_SERVICES } from '../mockData';
 import { UserRole, CollabProposal, Milestone, SmartContractDraft } from '../types';
 import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
-import ContractEditor from './ContractEditor';
-import { useToast } from './ToastContext';
+import ContractEditor from '../components/ContractEditor';
+import { useToast } from '../contexts/ToastContext';
 
 interface BookingHubProps {
   onBlockUser: () => void;

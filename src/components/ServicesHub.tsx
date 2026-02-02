@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import { ServiceListing, UserRole } from '../types';
 import { Briefcase, Star, Users, ArrowRight, Zap, Bot, ExternalLink, ShieldCheck, Lock, FileSpreadsheet, X, MessageSquare, ShieldAlert } from 'lucide-react';
-import PaymentGateway from './PaymentGateway';
+import PaymentGateway from '../components/PaymentGateway';
 import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 const MEMBER_SERVICES: ServiceListing[] = [
   {

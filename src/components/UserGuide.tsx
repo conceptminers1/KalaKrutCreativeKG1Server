@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { BookOpen, Download, Lock, ChevronDown, ChevronUp, CheckCircle, FileText, Scale, ShieldAlert } from 'lucide-react';
-import PaymentGateway from './PaymentGateway';
+import PaymentGateway from '../components/PaymentGateway';
 
 interface UserGuideProps {
   isSubscribed: boolean;

@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { MarketplaceItem } from '../types';
 import { useData } from '../contexts/DataContext';
 import { ShoppingBag, Clock, Search, X, CheckCircle, Plus, ShieldAlert, UploadCloud, MessageCircle, Eye, Tag, AlertCircle } from 'lucide-react';
-import PaymentGateway from './PaymentGateway';
+import PaymentGateway from '../components/PaymentGateway';
 import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface MarketplaceProps {
   onBlockUser: () => void;

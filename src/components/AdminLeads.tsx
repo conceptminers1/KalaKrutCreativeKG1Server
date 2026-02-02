@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Bot, RefreshCw, Download, FileSpreadsheet, Send } from 'lucide-react';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 import { knowledgeGraph } from '../services/knowledgeGraphService';
 
 // Define the structure of a Lead object

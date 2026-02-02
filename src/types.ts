@@ -71,12 +71,21 @@ export interface LeadQuery {
   isPaidService: boolean;
 }
 
+export interface CircleMember {
+    id: string;
+    name: string;
+    avatar: string;
+    role: string;
+}
+
 export interface ArtistProfile extends User {
   coverImage: string;
   bio: string;
   location: string;
   genres: string[];
   verified: boolean;
+  followers?: CircleMember[];
+  businessAssociates?: CircleMember[];
   pressKit: {
     photos: string[];
     topTracks: { title: string; duration: string; plays: string }[];

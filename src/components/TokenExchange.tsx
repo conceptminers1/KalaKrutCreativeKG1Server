@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { X, ArrowDown, RefreshCw, Loader2, Coins, Wallet } from 'lucide-react';
-import { useWallet, Balances } from '../WalletContext';
-import { useToast } from './ToastContext';
+import { useWallet, Balances } from '../contexts/WalletContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface TokenExchangeProps {
   onClose: () => void;

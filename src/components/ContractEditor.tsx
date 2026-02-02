@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SmartContractDraft, UserRole } from '../types';
 import { X, Save, ShieldAlert, CheckCircle, FileCode, Edit3, AlertTriangle, BrainCircuit } from 'lucide-react';
@@ -28,27 +27,6 @@ const ContractEditor: React.FC<ContractEditorProps> = ({
 
   const isAdmin = userRole === UserRole.ADMIN;
   const canEdit = isAdmin || (contract.status === 'Negotiation' && contract.lastEditedBy === 'Admin');
-
-  const handleLoadArtistData = () => {
-    if (!contract.artistId) return;
-    const portfolio = knowledgeGraph.getArtistPortfolio(contract.artistId);
-    if (portfolio) {
-      const portfolioText = `
-
---- [Verified Artist Portfolio] ---
-Artist: ${portfolio.name}
-Bio: ${portfolio.bio}
-
-Releases:
-${portfolio.releases.map(r => `- ${r.title} (${r.releaseDate})`).join('\n')}
-
-Collaborators:
-${portfolio.collaborations.map(c => `- ${c.name}`).join('\n')}
---- [End of Verified Data] ---
-      `;
-      setContent(content + portfolioText);
-    }
-  };
 
   const handleSave = () => {
     if (checkContentForViolation(content)) {
@@ -99,16 +77,6 @@ ${portfolio.collaborations.map(c => `- ${c.name}`).join('\n')}
 
            <div className="w-full md:w-64 bg-kala-800 border-l border-kala-700 p-4 space-y-6 overflow-y-auto">
               {/* ... Admin/User Actions ... */}
-              {contract.artistId && (
-                <div className="border-t border-kala-700 pt-4">
-                    <h4 className="text-xs font-bold text-kala-500 uppercase tracking-wider mb-2">Knowledge Graph</h4>
-                    <button 
-                        onClick={handleLoadArtistData}
-                        className="w-full py-2 bg-purple-600/50 text-purple-300 font-bold rounded-lg hover:bg-purple-600 border border-purple-500/30 transition-colors flex items-center justify-center gap-2">
-                        <BrainCircuit className="w-4 h-4" /> Load Artist Data
-                    </button>
-                </div>
-              )}
            </div>
         </div>
       </div>

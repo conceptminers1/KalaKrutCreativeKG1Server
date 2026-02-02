@@ -13,8 +13,22 @@ import {
   TreasuryAsset,
   StaffMember,
   ModerationCase,
-  SupportTicket
+  SupportTicket,
+  CircleMember
 } from './types';
+
+// --- MOCK CIRCLE DATA ---
+const mockFollowers: CircleMember[] = [
+  { id: 'f1', name: 'Elena Vance', avatar: 'https://i.pravatar.cc/150?u=f1', role: 'Vocalist' },
+  { id: 'f2', name: 'Marcus Cole', avatar: 'https://i.pravatar.cc/150?u=f2', role: 'Producer' },
+  { id: 'f3', name: 'Aria Chen', avatar: 'https://i.pravatar.cc/150?u=f3', role: 'Reveller' },
+];
+
+const mockBusinessAssociates: CircleMember[] = [
+  { id: 'b1', name: 'Julian Cross', avatar: 'https://i.pravatar.cc/150?u=b1', role: 'Venue Manager' },
+  { id: 'b2', name: 'Starlight Booking', avatar: 'https://i.pravatar.cc/150?u=b2', role: 'Agency' },
+];
+
 
 // --- BASE PROFILES FOR EACH ROLE ---
 
@@ -31,6 +45,8 @@ export const MOCK_ARTIST_PROFILE: ArtistProfile = {
   location: 'Brooklyn, NY',
   genres: ['Techno', 'Ambient', 'Electronica'],
   verified: true,
+  followers: mockFollowers,
+  businessAssociates: mockBusinessAssociates,
   pressKit: {
     photos: ['https://picsum.photos/seed/gig2/400/400', 'https://picsum.photos/seed/gig3/400/400'],
     topTracks: [
@@ -88,6 +104,30 @@ export const MOCK_ARTIST_PROFILE: ArtistProfile = {
   leadQueries: []
 };
 
+export const MOCK_DAO_GOVERNOR_PROFILE: ArtistProfile = {
+    ...MOCK_ARTIST_PROFILE,
+    id: 'u_dao_gov',
+    name: 'Governor Alice',
+    role: UserRole.DAO_Governor,
+    avatar: 'https://picsum.photos/seed/dao/200',
+    level: 15,
+    bio: 'Founding member of the KalaKrut DAO. Focused on sustainable growth and artist empowerment.',
+    stats: { ...MOCK_ARTIST_PROFILE.stats, rating: 5.0 },
+};
+
+export const MOCK_DAO_MEMBER_PROFILE: ArtistProfile = {
+    ...MOCK_ARTIST_PROFILE,
+    id: 'u_dao_member',
+    name: 'Leo Valdez',
+    role: UserRole.DAO_MEMBER,
+    avatar: 'https://picsum.photos/seed/daomember/200',
+    level: 8,
+    xp: 2500,
+    bio: 'Sound engineer and long-time community member. Recently accepted nomination to join the DAO.',
+    stats: { ...MOCK_ARTIST_PROFILE.stats, rating: 4.8 },
+};
+
+
 // Mock Users for Role Switcher
 export const MOCK_USERS_BY_ROLE: Record<UserRole, ArtistProfile> = {
   [UserRole.ARTIST]: MOCK_ARTIST_PROFILE,
@@ -96,7 +136,8 @@ export const MOCK_USERS_BY_ROLE: Record<UserRole, ArtistProfile> = {
   [UserRole.REVELLER]: { ...MOCK_ARTIST_PROFILE, id: 'u_reveller', name: 'Alex Fan', role: UserRole.REVELLER, avatar: 'https://picsum.photos/seed/fan1/200', level: 2, xp: 150 },
   [UserRole.ADMIN]: { ...MOCK_ARTIST_PROFILE, id: 'u_admin', name: 'System Admin', role: UserRole.ADMIN, avatar: 'https://picsum.photos/seed/admin/200', level: 99 },
   [UserRole.ORGANIZER]: { ...MOCK_ARTIST_PROFILE, id: 'u_org', name: 'Festival Co.', role: UserRole.ORGANIZER, avatar: 'https://picsum.photos/seed/org/200' },
-  [UserRole.DAO_MEMBER]: { ...MOCK_ARTIST_PROFILE, id: 'u_dao', name: 'Governor Alice', role: UserRole.DAO_MEMBER, avatar: 'https://picsum.photos/seed/dao/200', level: 5 },
+  [UserRole.DAO_Governor]: MOCK_DAO_GOVERNOR_PROFILE,
+  [UserRole.DAO_MEMBER]: MOCK_DAO_MEMBER_PROFILE,
   [UserRole.SERVICE_PROVIDER]: { ...MOCK_ARTIST_PROFILE, id: 'u_service', name: 'Legal Eagle', role: UserRole.SERVICE_PROVIDER, avatar: 'https://picsum.photos/seed/legal/200' }
 };
 
@@ -109,11 +150,15 @@ export const MOCK_ROSTER: RosterMember[] = [
     location: 'Brooklyn, NY',
     verified: true,
     assets: {
-      ips: 2,
-      events: 1,
-      services: 2,
-      productions: 5,
-      nfts: 3
+      ips: ['2'],
+      events: ['1'],
+      services: ['2'],
+      products: ['5'],
+      nfts: ['3'],
+      contents: [],
+      equipment: [],
+      instruments: [],
+      tickets: []
     },
     rating: 4.9,
     subscriberOnly: {
@@ -129,12 +174,16 @@ export const MOCK_ROSTER: RosterMember[] = [
     avatar: 'https://picsum.photos/seed/venue1/200',
     location: 'London, UK',
     verified: true,
-    assets: {
-      ips: 0,
-      events: 1,
-      services: 2,
-      productions: 0,
-      nfts: 10
+     assets: {
+      ips: ['0'],
+      events: ['1'],
+      services: ['2'],
+      products: ['0'],
+      nfts: ['10'],
+      contents: [],
+      equipment: [],
+      instruments: [],
+      tickets: []
     },
     rating: 4.8,
     subscriberOnly: {
@@ -150,12 +199,16 @@ export const MOCK_ROSTER: RosterMember[] = [
     avatar: 'https://picsum.photos/seed/sponsor1/200',
     location: 'San Francisco, CA',
     verified: true,
-    assets: {
-      ips: 0,
-      events: 0,
-      services: 2,
-      productions: 0,
-      nfts: 0
+     assets: {
+      ips: ['0'],
+      events: ['0'],
+      services: ['2'],
+      products: ['0'],
+      nfts: ['0'],
+      contents: [],
+      equipment: [],
+      instruments: [],
+      tickets: []
     },
     rating: 5.0,
     subscriberOnly: {
@@ -165,18 +218,22 @@ export const MOCK_ROSTER: RosterMember[] = [
     }
   },
     {
-    id: 'u_dao',
+    id: 'u_dao_gov',
     name: 'Governor Alice',
-    role: UserRole.DAO_MEMBER,
+    role: UserRole.DAO_Governor,
     avatar: 'https://picsum.photos/seed/dao/200',
     location: 'Decentralized',
     verified: true,
-    assets: {
-      ips: 0,
-      events: 0,
-      services: 2,
-      productions: 0,
-      nfts: 0
+     assets: {
+      ips: ['0'],
+      events: ['0'],
+      services: ['2'],
+      products: ['0'],
+      nfts: ['0'],
+      contents: [],
+      equipment: [],
+      instruments: [],
+      tickets: []
     },
     rating: 5.0,
     subscriberOnly: {
@@ -188,9 +245,9 @@ export const MOCK_ROSTER: RosterMember[] = [
 ];
 
 export const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, user: { ...MOCK_USERS_BY_ROLE[UserRole.ARTIST], name: 'Luna Eclipse', xp: 450 }, badges: ['Early Adopter'], change: 0 },
-  { rank: 2, user: { ...MOCK_USERS_BY_ROLE[UserRole.VENUE], name: 'The Warehouse', xp: 320 }, badges: ['Super Host'], change: 0 },
-  { rank: 3, user: { ...MOCK_USERS_BY_ROLE[UserRole.REVELLER], name: 'CryptoFan_99', xp: 150 }, badges: ['Collector'], change: 0 },
+  { rank: 1, user: { ...MOCK_USERS_BY_ROLE[UserRole.ARTIST], name: 'Luna Eclipse', xp: 450, level: 2 }, badges: ['Early Adopter'], change: 0 },
+  { rank: 2, user: { ...MOCK_USERS_BY_ROLE[UserRole.VENUE], name: 'The Warehouse', xp: 320, level: 1 }, badges: ['Super Host'], change: 0 },
+  { rank: 3, user: { ...MOCK_USERS_BY_ROLE[UserRole.REVELLER], name: 'CryptoFan_99', xp: 150, level: 1 }, badges: ['Collector'], change: 0 },
 ];
 
 export const MOCK_PROPOSALS: Proposal[] = [

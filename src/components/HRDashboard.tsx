@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { MOCK_STAFF } from '../mockData';
 import { StaffMember } from '../types';
 import { Users, UserPlus, Mail, MoreHorizontal, Briefcase, CheckCircle, XCircle, Search, Calendar, Clock, DollarSign, PieChart, ArrowRight, X } from 'lucide-react';
-import { useToast } from './ToastContext';
+import { useToast } from '../contexts/ToastContext';
 
 const HRDashboard: React.FC = () => {
   const { notify } = useToast();

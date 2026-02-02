@@ -4,50 +4,39 @@ import {
   LayoutGrid, Users, Calendar, Vote, Settings, LogOut, Menu, X, ShoppingBag, Briefcase, 
   BarChart3, Contact2, Bot, MessageSquare, UploadCloud, Network, GitMerge, LifeBuoy, CreditCard, Coins, FileText, FileSignature, AlertTriangle, ToggleLeft, ToggleRight, ShieldCheck
 } from 'lucide-react';
-import { User, UserRole } from '../types';
-import { useWallet } from '../WalletContext';
+import { UserRole } from '../types';
+import { useWallet } from '../contexts/WalletContext';
 import { useData } from '../contexts/DataContext';
-import SupportWidget from './SupportWidget';
-import { useToast } from './ToastContext';
+import SupportWidget from '../components/SupportWidget';
+import { useToast } from '../contexts/ToastContext';
 
 interface LayoutProps {
   children: React.ReactNode;
-  user: User | null;
-  onLogin: (role: UserRole) => void;
-  onLogout: () => void;
+  userRole: UserRole;
   onNavigate: (view: string) => void;
-  onSearch: (query: string) => void;
-  isSearching: boolean;
-  walletBalance: number;
-  isBlocked: boolean;
   currentView: string;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
   children, 
-  user, 
-  onLogin, 
-  onLogout, 
+  userRole, 
   onNavigate, 
-  onSearch, 
-  isSearching, 
-  walletBalance, 
-  isBlocked, 
   currentView 
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdminSettingsOpen, setIsAdminSettingsOpen] = useState(false);
   const { isDemoMode, demoModeAvailable, setDemoModeAvailable } = useData();
   const { notify } = useToast();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { disconnect } = useWallet();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(searchQuery);
+  const handleLogout = () => {
+    disconnect();
+    onNavigate('home');
+    notify("Logged out successfully.", "info");
   };
 
   const handleSettingsClick = () => {
-    if (user?.role === UserRole.ADMIN) {
+    if (userRole === UserRole.ADMIN) {
       setIsAdminSettingsOpen(true);
     } else {
       notify("Global Settings are restricted to Administrators.", "warning");
@@ -83,6 +72,38 @@ const Layout: React.FC<LayoutProps> = ({
     </button>
   );
 
+  const mainNavItems = [
+    { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
+    { id: 'marketplace', icon: ShoppingBag, label: 'Marketplace' },
+    { id: 'services', icon: Briefcase, label: 'Services Hub' },
+    { id: 'booking', icon: Calendar, label: 'Proposals & Bookings' },
+    { id: 'studio', icon: UploadCloud, label: 'Creative Studio' },
+  ];
+
+  const communityNavItems = [
+    { id: 'roster', icon: Contact2, label: 'Roster / Members' },
+    { id: 'forum', icon: MessageSquare, label: 'Forum' },
+    { id: 'my_circle', icon: Users, label: 'My Circle' },
+    { id: 'membership', icon: CreditCard, label: 'Membership & Plans' },
+  ];
+
+  const systemNavItems = [
+    { id: 'sitemap', icon: Network, label: 'Site Map' },
+    { id: 'whitepaper', icon: FileText, label: 'Whitepaper & Docs' },
+  ];
+
+  const adminNavItems = [
+    { id: 'governance', icon: Vote, label: 'DAO Governance' },
+    { id: 'contracts', icon: FileSignature, label: 'Contracts & Agreements' },
+    { id: 'treasury', icon: Coins, label: 'Treasury' },
+    { id: 'hrd', icon: Briefcase, label: 'HRD & Team' },
+    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+    { id: 'admin_support', icon: LifeBuoy, label: 'Support Center' },
+    { id: 'leads', icon: Bot, label: 'Leads & AI' },
+    { id: 'system_docs', icon: GitMerge, label: 'Architecture & ERD' },
+    { id: 'admin_email_templates', icon: FileText, label: 'Email Templates' },
+  ];
+
   return (
     <div className="min-h-screen bg-kala-900 flex text-slate-200 font-sans selection:bg-kala-secondary selection:text-kala-900 relative">
       
@@ -109,34 +130,18 @@ const Layout: React.FC<LayoutProps> = ({
 
         <div className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-180px)] custom-scrollbar">
           <div className="text-xs font-bold text-kala-600 uppercase px-4 py-2">Main</div>
-          <NavItem id="home" icon={LayoutGrid} label="Dashboard" />
-          <NavItem id="marketplace" icon={ShoppingBag} label="Marketplace" />
-          <NavItem id="services_hub" icon={Briefcase} label="Services Hub" />
-          <NavItem id="booking_hub" icon={Calendar} label="Proposals & Bookings" />
-          <NavItem id="creative_studio" icon={UploadCloud} label="Creative Studio" />
+          {mainNavItems.map(item => <NavItem key={item.id} {...item} />)}
 
           <div className="text-xs font-bold text-kala-600 uppercase px-4 py-2 mt-4">Community</div>
-          <NavItem id="roster" icon={Contact2} label="Roster / Members" />
-          <NavItem id="forum" icon={MessageSquare} label="Forum" />
-          <NavItem id="dao_governance" icon={Users} label="My Circle" />
-          <NavItem id="membership_plans" icon={CreditCard} label="Membership & Plans" />
+          {communityNavItems.map(item => <NavItem key={item.id} {...item} />)}
 
           <div className="text-xs font-bold text-kala-600 uppercase px-4 py-2 mt-4">System</div>
-          <NavItem id="sitemap" icon={Network} label="Site Map" />
-          <NavItem id="white_paper" icon={FileText} label="Whitepaper & Docs" />
-
-          {(user?.role === UserRole.ADMIN || user?.role === UserRole.DAO_MEMBER) && (
+          {systemNavItems.map(item => <NavItem key={item.id} {...item} />)}
+          
+          {(userRole === UserRole.ADMIN || userRole === UserRole.DAO_Governor) && (
              <>
                <div className="text-xs font-bold text-kala-600 uppercase px-4 py-2 mt-4">Admin / DAO</div>
-               <NavItem id="dao_governance" icon={Vote} label="DAO Governance" />
-               <NavItem id="admin_contracts" icon={FileSignature} label="Contracts & Agreements" />
-               <NavItem id="treasury_dashboard" icon={Coins} label="Treasury" />
-               <NavItem id="hr_dashboard" icon={Briefcase} label="HRD & Team" />
-               <NavItem id="analytics_dashboard" icon={BarChart3} label="Analytics" />
-               <NavItem id="admin_support" icon={LifeBuoy} label="Support Center" />
-               <NavItem id="admin_leads" icon={Bot} label="Leads & AI" />
-               <NavItem id="system_diagrams" icon={GitMerge} label="Architecture & ERD" />
-               <NavItem id="admin_email_templates" icon={FileText} label="Email Templates" />
+               {adminNavItems.map(item => <NavItem key={item.id} {...item} />)}
              </>
           )}
         </div>
@@ -149,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({
               <Settings className="w-5 h-5" /> Settings
            </button>
            <button 
-             onClick={onLogout}
+             onClick={handleLogout}
              className="flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 transition-colors w-full mt-1"
            >
               <LogOut className="w-5 h-5" /> Disconnect
@@ -190,7 +195,7 @@ const Layout: React.FC<LayoutProps> = ({
                  </button>
               </div>
               <div className="p-6 space-y-6">
-                 <div className={`bg-kala-800 p-4 rounded-xl border border-kala-700 flex items-center justify-between ${isDemoMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                 <div className={`bg-kala-800 p-4 rounded-xl border border-kala-700 flex items-center justify-between ${isDemoMode ? 'opacity-50 cursor-not-allowed' : ''}`}>\
                     <div>
                        <h4 className="text-white font-bold text-sm flex items-center gap-2">
                           Public Demo Mode
