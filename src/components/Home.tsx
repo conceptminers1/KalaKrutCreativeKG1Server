@@ -27,15 +27,19 @@ const KalaKrutLogo = ({ className = "w-32 h-32" }: { className?: string }) => (
       </filter>
     </defs>
     
+    {/* Abstract Art Circle */}
     <circle cx="100" cy="100" r="90" stroke="url(#logo_grad)" strokeWidth="8" fill="none" opacity="0.8" />
     <circle cx="100" cy="100" r="70" stroke="white" strokeWidth="1" fill="none" opacity="0.2" strokeDasharray="4 4" />
     
+    {/* Central Swirls representing Creativity */}
     <path d="M60 100 Q 100 20, 140 100 T 60 100" stroke="white" strokeWidth="4" strokeLinecap="round" fill="none" filter="url(#glow)" />
     <path d="M60 100 Q 100 180, 140 100" stroke="url(#logo_grad)" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.8" />
     
+    {/* Core Dot */}
     <circle cx="100" cy="100" r="12" fill="white" />
     <circle cx="100" cy="100" r="6" fill="#0f172a" />
     
+    {/* Orbiting Satellite (Tech/Web3) */}
     <circle cx="100" cy="20" r="6" fill="#06b6d4">
       <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="10s" repeatCount="indefinite" />
     </circle>
@@ -69,14 +73,15 @@ const LinktreeIcon = ({ className }: { className?: string }) => (
 const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
   const { users, stats, setDemoMode, isDemoMode, demoModeAvailable } = useData();
   const { notify } = useToast();
-  const [isPending, startTransition] = useTransition(); // Introduced useTransition
   const [selectedRoleForLogin, setSelectedRoleForLogin] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showMembersPreview, setShowMembersPreview] = useState(false);
   
+  // Login Form State for Live Mode
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
+  // Local state for the modal toggle before confirming login.
   const [loginMode, setLoginMode] = useState<'demo' | 'live'>(
     demoModeAvailable && isDemoMode ? 'demo' : 'live'
   );
@@ -90,9 +95,6 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
          return;
       }
 
-      setIsLoading(true);
-      const effectiveMode = demoModeAvailable ? (loginMode === 'demo') : false;
-      
       // Using startTransition to prevent suspension errors during view swaps
       startTransition(() => {
         setDemoMode(effectiveMode);
@@ -104,9 +106,10 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
     }
   };
 
+
   const LoginCard = ({ role, icon: Icon, desc }: { role: UserRole, icon: any, desc: string }) => (
     <button 
-      onClick={() => startTransition(() => setSelectedRoleForLogin(role))} // Wrap selection in transition
+      onClick={() => setSelectedRoleForLogin(role)}
       className="bg-kala-800/40 backdrop-blur border border-kala-700 p-6 rounded-xl hover:bg-kala-800 hover:border-kala-secondary transition-all text-left group h-full flex flex-col"
     >
       <div className="w-12 h-12 rounded-lg bg-kala-700 flex items-center justify-center text-kala-300 group-hover:bg-kala-secondary group-hover:text-kala-900 mb-4 transition-colors">
@@ -133,7 +136,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
             <span>Kala<span className="text-kala-secondary">Krut</span></span>
           </div>
           <div className="flex gap-4">
-             <button onClick={() => startTransition(() => onViewNews())} className="text-sm font-medium text-kala-300 hover:text-white flex items-center gap-2 px-4 py-2 rounded hover:bg-kala-800 transition-colors">
+             <button onClick={onViewNews} className="text-sm font-medium text-kala-300 hover:text-white flex items-center gap-2 px-4 py-2 rounded hover:bg-kala-800 transition-colors">
                <Newspaper className="w-4 h-4" /> News & Announcements
              </button>
              <button className="bg-white text-kala-900 px-5 py-2 rounded-full font-bold text-sm hover:bg-gray-100 transition-colors">
@@ -146,7 +149,9 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-kala-secondary/10 rounded-full blur-3xl -z-10"></div>
+        
         <div className="max-w-4xl mx-auto px-6 pt-16 pb-16 text-center">
+           
            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
              The Future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-kala-secondary to-purple-500">Creative Business</span>
            </h1>
@@ -190,14 +195,17 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
         </div>
       </div>
 
-      {/* About Section */}
+      {/* About / Mission */}
       <div className="bg-kala-800/30 border-y border-kala-800 py-16">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold text-white mb-6">Empowering the Creative Economy</h2>
             <div className="space-y-4 text-kala-300 leading-relaxed">
               <p>
-                KalaKrut Creative is built for the worldwide community of artists, organizers, grantmakers, and revellers. We facilitate ease of business by bringing fragmented workflows into a single, secure portal.
+                KalaKrut Creative is built for the worldwide community of artists, organizers, grantmakers, and revellers. We facilitate ease of business by bringing fragmented workflows—booking, ticketing, IP management, and auctions—into a single, secure portal.
+              </p>
+              <p>
+                Whether you are selling physical art, renting instruments, or booking a world tour, our platform handles the complexity so you can focus on the art. With separate, tailored dashboards for every role, we ensure that Admins can monitor health while DAO members govern the future.
               </p>
             </div>
             <button onClick={() => startTransition(() => onViewNews())} className="mt-8 flex items-center gap-2 text-kala-secondary font-bold hover:gap-3 transition-all">
@@ -217,67 +225,93 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
 
       {/* Community Barometer */}
       <div className="py-20 bg-kala-900 border-b border-kala-800 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-5 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent"></div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-3">
               <Activity className="text-kala-secondary w-8 h-8" /> Community Barometer
             </h2>
-            <div className="mt-4 inline-flex items-center gap-2 bg-kala-800/50 border border-kala-700 px-4 py-2 rounded-full text-sm text-kala-300">
+            <p className="text-kala-400">Live ecosystem metrics indicating the health and growth of the collective.</p>
+            
+            {/* Join Instructions */}
+            <div className="mt-4 inline-flex items-center gap-2 bg-kala-800/50 border border-kala-700 px-4 py-2 rounded-full text-sm text-kala-300 shadow-lg animate-in fade-in zoom-in">
                <Info className="w-4 h-4 text-blue-400" />
-               <span>To Join: Click the <span className="text-white font-bold bg-blue-500/20 px-1 rounded border border-blue-500/30">Preview</span> button below.</span>
+               <span>To Join: Click the <span className="text-white font-bold bg-blue-500/20 px-1 rounded border border-blue-500/30">Preview</span> button on the "Active Members" chart below.</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div 
-              onClick={() => startTransition(() => setShowMembersPreview(true))}
-              className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 hover:border-blue-500 transition-all group cursor-pointer"
+              onClick={() => setShowMembersPreview(true)}
+              className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 hover:border-blue-500 transition-all group cursor-pointer relative overflow-hidden"
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="flex justify-between items-start mb-4 relative z-10">
                 <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                   <Users className="w-6 h-6" />
                 </div>
-                <div className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full flex items-center gap-1 border border-blue-500/20">
+                <div className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full flex items-center gap-1 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-colors shadow-sm">
                   <Eye className="w-3 h-3" /> Preview
                 </div>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{stats.totalMembers.toLocaleString()}</div>
-              <div className="text-sm text-kala-400 uppercase font-bold tracking-wider mb-4">Active Members</div>
+              <div className="text-4xl font-bold text-white mb-1 tracking-tight relative z-10">{stats.totalMembers.toLocaleString()}</div>
+              <div className="text-sm text-kala-400 uppercase font-bold tracking-wider mb-4 relative z-10">Active Members</div>
+              <div className="w-full bg-kala-900 h-1.5 rounded-full overflow-hidden relative z-10">
+                <div className="bg-blue-500 h-full rounded-full w-[15%]"></div>
+              </div>
             </div>
 
-            <div className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 group">
+            <div className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 hover:border-purple-500/50 transition-all group">
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400">
+                <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
                   <Music className="w-6 h-6" />
                 </div>
+                <div className="text-xs font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> +100%
+                </div>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{stats.activeGigs.toLocaleString()}</div>
+              <div className="text-4xl font-bold text-white mb-1 tracking-tight">{stats.activeGigs.toLocaleString()}</div>
               <div className="text-sm text-kala-400 uppercase font-bold tracking-wider mb-4">Gigs Completed</div>
+              <div className="w-full bg-kala-900 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-purple-500 h-full rounded-full w-[20%]"></div>
+              </div>
             </div>
 
-            <div className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 group">
+            <div className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 hover:border-green-500/50 transition-all group">
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-green-500/10 rounded-xl text-green-400">
+                <div className="p-3 bg-green-500/10 rounded-xl text-green-400 group-hover:bg-green-500 group-hover:text-white transition-colors">
                   <ShoppingBag className="w-6 h-6" />
                 </div>
-              </div>
-              <div className="text-4xl font-bold text-white mb-1">12</div>
-              <div className="text-sm text-kala-400 uppercase font-bold tracking-wider mb-4">Market Conversions</div>
-            </div>
-
-            <div className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 group">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400">
-                  <Activity className="w-6 h-6" />
+                <div className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> +50%
                 </div>
               </div>
-              <div className="text-4xl font-bold text-white mb-1">{stats.totalTransactions}</div>
+              <div className="text-4xl font-bold text-white mb-1 tracking-tight">12</div>
+              <div className="text-sm text-kala-400 uppercase font-bold tracking-wider mb-4">Market Conversions</div>
+              <div className="w-full bg-kala-900 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-green-500 h-full rounded-full w-[10%]"></div>
+              </div>
+            </div>
+
+            <div className="bg-kala-800/50 rounded-2xl p-6 border border-kala-700 hover:border-yellow-500/50 transition-all group">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400 group-hover:bg-yellow-500 group-hover:text-white transition-colors">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <div className="text-xs font-bold text-yellow-400 bg-yellow-500/10 px-2 py-1 rounded-full flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> +100%
+                </div>
+              </div>
+              <div className="text-4xl font-bold text-white mb-1 tracking-tight">{stats.totalTransactions}</div>
               <div className="text-sm text-kala-400 uppercase font-bold tracking-wider mb-4">Total Transactions</div>
+              <div className="w-full bg-kala-900 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-yellow-500 h-full rounded-full w-[8%]"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
+   
       {/* Login Portal Section */}
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
@@ -311,38 +345,185 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
               <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <LinktreeIcon className="w-4 h-4" /> </a>
            </div>
         </div>
+
+      {/* Footer */}
+      <footer className="bg-kala-900 border-t border-kala-800 py-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+           <div className="text-kala-500 text-sm"> &copy; 2024 KalaKrut Creative. All rights reserved. </div>
+           <div className="flex gap-4">
+              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <XIcon className="w-4 h-4" /> </a>
+              <a href="https://www.instagram.com/kalakrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Instagram className="w-4 h-4" /> </a>
+              <a href="https://www.facebook.com/kalakrutagn" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Facebook className="w-4 h-4" /> </a>
+              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <SubstackIcon className="w-4 h-4" /> </a>
+              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <DiscordIcon className="w-4 h-4" /> </a>
+              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <LinktreeIcon className="w-4 h-4" /> </a>
+           </div>
+        </div>
+      </footer>
+
+      {/* Footer */}
+      <footer className="bg-kala-900 border-t border-kala-800 py-12">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+           <div className="text-kala-500 text-sm">
+             &copy; 2024 KalaKrut Creative. All rights reserved.
+           </div>
+
+           <div className="flex gap-4">
+              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <XIcon className="w-4 h-4" />
+              </a>
+              <a href="https://www.instagram.com/kalakrut?igsh=MWcyc2htOGpwN3owYw==" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="https://www.facebook.com/kalakrutagn?mibextid=ZbWKwL" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <SubstackIcon className="w-4 h-4" />
+              </a>
+              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <DiscordIcon className="w-4 h-4" />
+              </a>
+              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <LinktreeIcon className="w-4 h-4" />
+              </a>
+           </div>
+
+           <div className="flex gap-6 text-sm font-bold text-kala-400">
+             <a href="#" className="hover:text-white transition-colors">Terms</a>
+             <a href="#" className="hover:text-white transition-colors">Privacy</a>
+             <a href="#" className="hover:text-white transition-colors">DAO Constitution</a>
+           </div>
+        </div>
       </footer>
 
       {/* Dual Login Modal */}
       {selectedRoleForLogin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-           <div className="bg-kala-900 border border-kala-700 rounded-2xl w-full max-w-2xl overflow-hidden relative shadow-2xl">
-              <button onClick={() => !isLoading && setSelectedRoleForLogin(null)} className="absolute top-4 right-4 text-kala-500 hover:text-white">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
+           <div className="bg-kala-900 border border-kala-700 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
+              <button 
+                onClick={() => !isLoading && setSelectedRoleForLogin(null)}
+                className="absolute top-4 right-4 text-kala-500 hover:text-white disabled:opacity-50"
+                disabled={isLoading}
+              >
                  <X className="w-6 h-6" />
               </button>
+
               <div className="p-8 text-center">
                  <h2 className="text-2xl font-bold text-white mb-2">Login as {selectedRoleForLogin}</h2>
-                 <div className="flex justify-center mt-6">
-                    <div className="bg-kala-800 p-1 rounded-lg flex">
-                        <button onClick={() => setLoginMode('demo')} className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${loginMode === 'demo' ? 'bg-kala-secondary text-kala-900' : 'text-kala-400'}`}>Demo</button>
-                        <button onClick={() => setLoginMode('live')} className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${loginMode === 'live' ? 'bg-green-500 text-white' : 'text-kala-400'}`}>Live</button>
+                 <p className="text-kala-400">Choose your authentication method to enter KalaKrut.</p>
+                 
+                 {/* MODE TOGGLE */}
+                 {demoModeAvailable && (
+                    <div className="flex justify-center mt-6">
+                        <div className="bg-kala-800 p-1 rounded-lg inline-flex relative">
+                            <button 
+                              onClick={() => { setLoginMode('demo'); setEmail(''); setPassword(''); }}
+                              className={`relative z-10 px-4 py-2 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                                 loginMode === 'demo' ? 'bg-kala-secondary text-kala-900 shadow' : 'text-kala-400 hover:text-white'
+                              }`}
+                            >
+                               <PlayCircle className="w-3 h-3" /> Demo Mode
+                            </button>
+                            <button 
+                              onClick={() => { setLoginMode('live'); setEmail(''); setPassword(''); }}
+                              className={`relative z-10 px-4 py-2 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${
+                                 loginMode === 'live' ? 'bg-green-500 text-white shadow' : 'text-kala-400 hover:text-white'
+                              }`}
+                            >
+                               <Radio className="w-3 h-3" /> Live Mode
+                            </button>
+                        </div>
                     </div>
-                 </div>
+                 )}
+                 <p className="text-[10px] text-kala-500 mt-2">
+                    {demoModeAvailable 
+                      ? (loginMode === 'demo' ? "Pre-loaded with sample data for evaluation." : "Production environment. Real transactions only.")
+                      : "Production Environment (Demo Mode Disabled by Admin)"
+                    }
+                 </p>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 border-t border-kala-800 bg-kala-800/20">
-                 <div className="p-6 bg-kala-800/50 rounded-xl border border-kala-700 flex flex-col items-center">
-                    <Wallet className="w-8 h-8 text-purple-400 mb-4" />
-                    <button onClick={() => handleLoginClick('web3')} className="w-full py-2 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-500">Connect Wallet</button>
-                 </div>
-                 <div className="p-6 bg-kala-800/50 rounded-xl border border-kala-700 flex flex-col items-center">
-                    <Mail className="w-8 h-8 text-kala-secondary mb-4" />
-                    {loginMode === 'live' && (
-                       <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-kala-900 border border-kala-700 rounded p-2 mb-3 text-white text-sm" />
-                    )}
-                    <button onClick={() => handleLoginClick('web2')} className="w-full py-2 bg-kala-secondary text-kala-900 font-bold rounded-lg hover:bg-cyan-400">
-                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Sign In'}
+                 {/* Web3 Login */}
+                 <div className="flex flex-col items-center p-6 bg-kala-800/50 rounded-xl border border-kala-700 hover:border-purple-500 transition-colors group">
+                    <div className="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center text-purple-400 mb-4 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                       <Wallet className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Web3 Wallet</h3>
+                    <p className="text-xs text-kala-400 text-center mb-6 h-10">
+                       Connect MetaMask, Phantom, or WalletConnect. Best for DAO Members and NFT Trading.
+                    </p>
+                    <button 
+                      onClick={() => handleLoginClick('web3')}
+                      disabled={isLoading}
+                      className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect Wallet'}
                     </button>
                  </div>
+
+                 {/* Web2 Login */}
+                 <div className="flex flex-col items-center p-6 bg-kala-800/50 rounded-xl border border-kala-700 hover:border-kala-secondary transition-colors group">
+                    <div className="w-16 h-16 bg-kala-secondary/10 rounded-full flex items-center justify-center text-kala-secondary mb-4 group-hover:bg-kala-secondary group-hover:text-kala-900 transition-colors">
+                       <Mail className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">Email & Password</h3>
+                    <p className="text-xs text-kala-400 text-center mb-6 h-10">
+                       {loginMode === 'demo' ? "Login as Example User: " + selectedRoleForLogin : "Standard login for real user access."}
+                    </p>
+                    
+                    {loginMode === 'live' ? (
+                       <div className="w-full space-y-3">
+                          <input 
+                            type="email" 
+                            placeholder="Email" 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-kala-900 border border-kala-700 rounded px-3 py-2 text-sm text-white focus:border-kala-secondary outline-none" 
+                          />
+                          <input 
+                            type="password" 
+                            placeholder="Password" 
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-kala-900 border border-kala-700 rounded px-3 py-2 text-sm text-white focus:border-kala-secondary outline-none" 
+                          />
+                          {/* Live Mode Admin Hint - visible only if Admin role selected */}
+                          {selectedRoleForLogin === UserRole.ADMIN && (
+                             <div className="text-[9px] text-kala-500 bg-kala-900 p-2 rounded border border-kala-700 flex items-center gap-2">
+                                <KeyRound className="w-3 h-3 text-kala-secondary" />
+                                <span>Default: <b>admin@kalakrut.io</b> / <b>(any)</b></span>
+                             </div>
+                          )}
+                          <button 
+                            onClick={() => handleLoginClick('web2')}
+                            disabled={isLoading}
+                            className="w-full py-2 bg-kala-secondary hover:bg-cyan-400 text-kala-900 font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sign In'}
+                          </button>
+                       </div>
+                    ) : (
+                       /* Demo Mode Mock Button */
+                       <div className="w-full space-y-3">
+                          <div className="bg-kala-900/50 border border-kala-700 p-3 rounded text-center text-xs text-kala-400">
+                             Simulated Environment Active
+                          </div>
+                          <button 
+                            onClick={() => handleLoginClick('web2')}
+                            disabled={isLoading}
+                            className="w-full py-2 bg-kala-secondary hover:bg-cyan-400 text-kala-900 font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                          >
+                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : `Enter as ${selectedRoleForLogin} (Demo)`}
+                          </button>
+                       </div>
+                    )}
+                 </div>
+              </div>
+
+              <div className="p-4 bg-kala-900 border-t border-kala-800 text-center text-xs text-kala-500">
+                 By continuing, you agree to our Terms of Service. Both login methods provide secure access to your portal.
               </div>
            </div>
         </div>
@@ -350,27 +531,46 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
 
       {/* Member Preview Modal */}
       {showMembersPreview && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
            <div className="bg-kala-900 border border-kala-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative">
               <div className="p-4 border-b border-kala-800 flex justify-between items-center bg-kala-800/50">
-                 <h3 className="text-white font-bold flex items-center gap-2"> <Users className="w-5 h-5 text-blue-400" /> Community Snapshot </h3>
-                 <button onClick={() => setShowMembersPreview(false)} className="text-kala-500 hover:text-white"> <X className="w-5 h-5" /> </button>
+                 <h3 className="text-white font-bold flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-400" /> Community Snapshot
+                 </h3>
+                 <button onClick={() => setShowMembersPreview(false)} className="text-kala-500 hover:text-white">
+                    <X className="w-5 h-5" />
+                 </button>
               </div>
               <div className="p-6 space-y-4">
+                 <p className="text-sm text-kala-400 mb-2">Join {stats.totalMembers.toLocaleString()} creators, venues, and organizers.</p>
                  <div className="space-y-3">
                     {previewMembers.map((member, i) => (
                        <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-kala-800 border border-kala-700">
-                          <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                          <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-kala-600" />
                           <div>
-                             <div className="text-sm font-bold text-white">{member.name}</div>
-                             <div className="text-xs text-kala-400">{member.role}</div>
+                             <div className="text-sm font-bold text-white flex items-center gap-2">
+                               {member.name} 
+                               {!(member as any).isMock && <span className="text-[9px] bg-green-500/20 text-green-400 px-1 rounded border border-green-500/30">NEW</span>}
+                             </div>
+                             <div className="text-xs text-kala-400 flex items-center gap-2">
+                                <span>{member.role}</span>
+                                <span className="w-1 h-1 rounded-full bg-kala-600"></span>
+                                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {member.location}</span>
+                             </div>
                           </div>
                        </div>
                     ))}
                  </div>
-                 <button onClick={() => startTransition(() => { setShowMembersPreview(false); onJoin(); })} className="w-full py-3 bg-kala-secondary text-kala-900 font-bold rounded-xl hover:bg-cyan-400 transition-colors">
-                    Join the Community
-                 </button>
+                 
+                 <div className="pt-4 border-t border-kala-800">
+                    <p className="text-xs text-center text-kala-500 mb-3">New users must register to access the full portal.</p>
+                    <button 
+                      onClick={() => startTransition(() = { setShowMembersPreview(false); onJoin(); }}
+                      className="w-full py-3 bg-kala-secondary text-kala-900 font-bold rounded-xl hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-900/20"
+                    >
+                       Join the Community
+                    </button>
+                 </div>
               </div>
            </div>
         </div>
