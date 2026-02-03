@@ -564,8 +564,8 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
                  
                  <div className="pt-4 border-t border-kala-800">
                     <p className="text-xs text-center text-kala-500 mb-3">New users must register to access the full portal.</p>
-                    <button 
-                      onClick={() => startTransition(() = { setShowMembersPreview(false); onJoin(); }}
+                                        <button 
+                      onClick={() => startTransition(() => { setShowMembersPreview(false); onJoin(); })}
                       className="w-full py-3 bg-kala-secondary text-kala-900 font-bold rounded-xl hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-900/20"
                     >
                        Join the Community
