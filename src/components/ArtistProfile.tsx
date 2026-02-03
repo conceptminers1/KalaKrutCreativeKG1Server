@@ -1,6 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArtistProfile as IArtistProfile, LeadQuery, UserRole } from '../types';
+import { searchArtist } from '../services/musicBrainzService';
+import { Artist } from '../types';
+import {
+  //... other icons
+  Search,
+  //... other icons
+} from 'lucide-react';
 import { 
   MapPin, 
   CheckCircle, 
@@ -57,6 +64,9 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
   const [localArtist, setLocalArtist] = useState(artist);
   const [manualQuery, setManualQuery] = useState('');
   const [manualResponse, setManualResponse] = useState('');
+    const [artistQuery, setArtistQuery] = useState('');
+  const [artistResults, setArtistResults] = useState<Artist[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   // Password Change State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -123,7 +133,17 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
     }));
     notify("Subscription activated! You can now access the guide.", "success");
   };
-
+  const handleArtistSearch = async () => {
+    if (!artistQuery) {
+        notify("Please enter an artist name to search.", "warning");
+        return;
+    }
+    setIsSearching(true);
+    const results = await searchArtist(artistQuery);
+    setArtistResults(results);
+    setIsSearching(false);
+    notify(`Found ${results.length} artists.`, "success");
+  };
   const handleAcceptDaoInvite = () => {
     setLocalArtist(prev => ({ ...prev, role: UserRole.DAO_MEMBER }));
     notify("Welcome to the DAO! You are now an active voting member.", "success");
@@ -602,6 +622,63 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
                      <Bot className="text-indigo-400" /> LeadGeniusAI History
                   </h3>
+                             {/* MusicBrainz Artist Search */}
+           <div className="bg-kala-900/50 border border-kala-800 rounded-xl p-6 mt-6">
+               <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                  <Search className="w-4 h-4 text-teal-400" /> MusicBrainz Artist Search
+               </h4>
+               <div className="flex gap-2">
+                   <input
+                       type="text"
+                       value={artistQuery}
+                       onChange={(e) => setArtistQuery(e.target.value)}
+                       className="flex-grow bg-kala-800 border border-kala-700 rounded-lg px-4 py-2 text-white outline-none focus:border-teal-500"
+                       placeholder="e.g., Nirvana, Daft Punk..."
+                   />
+                   <button
+                       onClick={handleArtistSearch}
+                       disabled={isSearching}
+                       className="bg-teal-600 hover:bg-teal-500 text-white font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                       {isSearching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                       {isSearching ? 'Searching...' : 'Search'}
+                   </button>
+               </div>
+               <p className="text-xs text-kala-500 mt-2">
+                   * Search for artists on MusicBrainz to discover new talent.
+               </p>
+           </div>
+
+           {/* Artist Search Results */}
+           {artistResults.length > 0 && (
+               <div className="bg-kala-800/40 border border-kala-700/80 rounded-xl mt-6">
+                   <div className="p-4 border-b border-kala-700">
+                       <h3 className="font-bold text-white">Artist Search Results</h3>
+                   </div>
+                   <div className="overflow-x-auto">
+                       <table className="w-full text-sm text-left">
+                           <thead className="text-xs text-kala-400 uppercase bg-kala-800/60">
+                               <tr>
+                                   <th className="px-6 py-3">Name</th>
+                                   <th className="px-6 py-3">Disambiguation</th>
+                                   <th className="px-6 py-3 text-center">Actions</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                               {artistResults.map(artist => (
+                                   <tr key={artist.id} className="border-b border-kala-800 hover:bg-kala-800/50">
+                                       <td className="px-6 py-4 font-medium text-white">{artist.name}</td>
+                                       <td className="px-6 py-4 text-kala-300">{artist.bio}</td>
+                                       <td className="px-6 py-4 text-center">
+                                           <button className="text-indigo-400 hover:text-indigo-300">Add as Lead</button>
+                                       </td>
+                                   </tr>
+                               ))}
+                           </tbody>
+                       </table>
+                   </div>
+               </div>
+           )}
                   <p className="text-kala-400 text-sm mt-1">
                      Manage your query prompts and lead results.
                   </p>
