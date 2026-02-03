@@ -617,13 +617,33 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
         </div>
       ) : activeTab === 'leads' && isOwnProfile ? (
          <div className="space-y-6 animate-in slide-in-from-right-4 fade-in">
+            {/* LeadGeniusAI History */}
             <div className="flex flex-col md:flex-row justify-between items-start gap-4 bg-kala-800/50 p-6 rounded-xl border border-kala-700">
                <div>
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
                      <Bot className="text-indigo-400" /> LeadGeniusAI History
                   </h3>
-                             {/* MusicBrainz Artist Search */}
-           <div className="bg-kala-900/50 border border-kala-800 rounded-xl p-6 mt-6">
+                  <p className="text-kala-400 text-sm mt-1">
+                     Manage your query prompts and lead results.
+                  </p>
+               </div>
+               <div className="flex items-center gap-3">
+                  <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-2 ${
+                     localArtist.subscription?.hasLeadGeniusSync 
+                     ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                     : 'bg-kala-900 border-kala-700 text-kala-500'
+                  }`}>
+                     {localArtist.subscription?.hasLeadGeniusSync ? (
+                        <><RefreshCw className="w-3 h-3 animate-spin-slow" /> Auto-Sync Active</>
+                     ) : (
+                        <><Bot className="w-3 h-3" /> Manual Mode</>
+                     )}
+                  </div>
+               </div>
+            </div>
+
+            {/* MusicBrainz Artist Search */}
+            <div className="bg-kala-900/50 border border-kala-800 rounded-xl p-6">
                <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                   <Search className="w-4 h-4 text-teal-400" /> MusicBrainz Artist Search
                </h4>
@@ -647,11 +667,11 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
                <p className="text-xs text-kala-500 mt-2">
                    * Search for artists on MusicBrainz to discover new talent.
                </p>
-           </div>
-
-           {/* Artist Search Results */}
-           {artistResults.length > 0 && (
-               <div className="bg-kala-800/40 border border-kala-700/80 rounded-xl mt-6">
+            </div>
+            
+            {/* Artist Search Results */}
+            {artistResults.length > 0 && (
+               <div className="bg-kala-800/40 border border-kala-700/80 rounded-xl">
                    <div className="p-4 border-b border-kala-700">
                        <h3 className="font-bold text-white">Artist Search Results</h3>
                    </div>
@@ -679,24 +699,6 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
                    </div>
                </div>
            )}
-                  <p className="text-kala-400 text-sm mt-1">
-                     Manage your query prompts and lead results.
-                  </p>
-               </div>
-               <div className="flex items-center gap-3">
-                  <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-2 ${
-                     localArtist.subscription?.hasLeadGeniusSync 
-                     ? 'bg-green-500/10 border-green-500/30 text-green-400' 
-                     : 'bg-kala-900 border-kala-700 text-kala-500'
-                  }`}>
-                     {localArtist.subscription?.hasLeadGeniusSync ? (
-                        <><RefreshCw className="w-3 h-3 animate-spin-slow" /> Auto-Sync Active</>
-                     ) : (
-                        <><Bot className="w-3 h-3" /> Manual Mode</>
-                     )}
-                  </div>
-               </div>
-            </div>
 
             {/* Manual Entry Form */}
             <div className="bg-kala-800/30 border border-kala-700 rounded-xl p-6">
@@ -760,6 +762,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
                )}
             </div>
          </div>
+
       ) : activeTab === 'guide' && isOwnProfile ? (
         <UserGuide isSubscribed={!!isSubscribed} onSubscribe={handleSubscribe} />
       ) : activeTab === 'settings' && isOwnProfile ? (
