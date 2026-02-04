@@ -50,8 +50,8 @@ interface ArtistProfileProps {
   onUpdateProfile?: (data: Partial<IArtistProfile>) => void;
 }
 
-const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, isOwnProfile = false, isBlocked = false, onUpdateProfile }) => {
-  const { notify } = useToast();
+  const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, isOwnProfile = false, isBlocked = false, onUpdateProfile }) => {if (!artist) {return null;}
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'overview' | 'invest' | 'settings' | 'financials' | 'leads' | 'guide'>('overview');
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [localArtist, setLocalArtist] = useState(artist);
@@ -109,7 +109,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
 
     setManualQuery('');
     setManualResponse('');
-    notify("Lead query saved successfully!", "success");
+    toast("Lead query saved successfully!", "success");
   };
 
   const handleSubscribe = () => {
@@ -121,12 +121,12 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
         planName: 'Community Pro'
       }
     }));
-    notify("Subscription activated! You can now access the guide.", "success");
+    toast(" Subscription activated! You can now access the guide.", "success");
   };
 
   const handleAcceptDaoInvite = () => {
     setLocalArtist(prev => ({ ...prev, role: UserRole.DAO_MEMBER }));
-    notify("Welcome to the DAO! You are now an active voting member.", "success");
+    toast("Welcome to the DAO! You are now an active voting member.", "success");
   };
 
   // --- Profile Editing Handlers ---
@@ -145,7 +145,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
           handleProfileUpdate(field, reader.result);
-          notify(`${field === 'avatar' ? 'Avatar' : 'Cover Image'} updated successfully!`, "success");
+          toast(`${field === 'avatar' ? 'Avatar' : 'Cover Image'} updated successfully!`, "success");
         }
       };
       reader.readAsDataURL(file);
@@ -155,17 +155,17 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
   const handlePasswordChange = () => {
     // If user has a password set, verify current
     if (localArtist.password && currentPassword !== localArtist.password) {
-      notify("Current password incorrect.", "error");
+      toast("Current password incorrect.", "error");
       return;
     }
     
     if (newPassword.length < 6) {
-      notify("New password must be at least 6 characters.", "warning");
+      toast("New password must be at least 6 characters.", "warning");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      notify("New passwords do not match.", "error");
+      toast("New passwords do not match.", "error");
       return;
     }
 
@@ -178,7 +178,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    notify("Password changed successfully!", "success");
+    toast("Password changed successfully!", "success");
   };
 
   const handleSocialChange = (index: number, field: 'platform' | 'followers', value: string) => {
