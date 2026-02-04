@@ -57,8 +57,8 @@ interface ArtistProfileProps {
   onUpdateProfile?: (data: Partial<IArtistProfile>) => void;
 }
 
-  const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, isOwnProfile = false, isBlocked = false, onUpdateProfile }) => {if (!artist) {return null;
-  const { toast } = useToast();
+const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, isOwnProfile = false, isBlocked = false, onUpdateProfile }) => {
+  const { notify } = useToast();
   const [activeTab, setActiveTab] = useState<'overview' | 'invest' | 'settings' | 'financials' | 'leads' | 'guide'>('overview');
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [localArtist, setLocalArtist] = useState(artist);
@@ -119,7 +119,7 @@ interface ArtistProfileProps {
 
     setManualQuery('');
     setManualResponse('');
-    toast("Lead query saved successfully!", "success");
+    notify("Lead query saved successfully!", "success");
   };
 
   const handleSubscribe = () => {
@@ -131,22 +131,22 @@ interface ArtistProfileProps {
         planName: 'Community Pro'
       }
     }));
-    toast(" Subscription activated! You can now access the guide.", "success");
+    notify("Subscription activated! You can now access the guide.", "success");
   };
   const handleArtistSearch = async () => {
     if (!artistQuery) {
-        toast("Please enter an artist name to search.", "warning");
+        notify("Please enter an artist name to search.", "warning");
         return;
     }
     setIsSearching(true);
     const results = await searchArtist(artistQuery);
     setArtistResults(results);
     setIsSearching(false);
-    toast(`Found ${results.length} artists.`, "success");
+    notify(`Found ${results.length} artists.`, "success");
   };
   const handleAcceptDaoInvite = () => {
     setLocalArtist(prev => ({ ...prev, role: UserRole.DAO_MEMBER }));
-    toast("Welcome to the DAO! You are now an active voting member.", "success");
+    notify("Welcome to the DAO! You are now an active voting member.", "success");
   };
 
   // --- Profile Editing Handlers ---
@@ -165,7 +165,7 @@ interface ArtistProfileProps {
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
           handleProfileUpdate(field, reader.result);
-          toast(`${field === 'avatar' ? 'Avatar' : 'Cover Image'} updated successfully!`, "success");
+          notify(`${field === 'avatar' ? 'Avatar' : 'Cover Image'} updated successfully!`, "success");
         }
       };
       reader.readAsDataURL(file);
@@ -175,17 +175,17 @@ interface ArtistProfileProps {
   const handlePasswordChange = () => {
     // If user has a password set, verify current
     if (localArtist.password && currentPassword !== localArtist.password) {
-      toast("Current password incorrect.", "error");
+      notify("Current password incorrect.", "error");
       return;
     }
     
     if (newPassword.length < 6) {
-      toast("New password must be at least 6 characters.", "warning");
+      notify("New password must be at least 6 characters.", "warning");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast("New passwords do not match.", "error");
+      notify("New passwords do not match.", "error");
       return;
     }
 
@@ -198,7 +198,7 @@ interface ArtistProfileProps {
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    toast("Password changed successfully!", "success");
+    notify("Password changed successfully!", "success");
   };
 
   const handleSocialChange = (index: number, field: 'platform' | 'followers', value: string) => {
@@ -275,7 +275,7 @@ interface ArtistProfileProps {
                                 <CreditCard className="w-4 h-4 text-green-400" />
                                 <div>
                                    <div className="text-sm font-bold text-white">{m.label}</div>
-                                   <div className="text-xs text-kala-500">{m.type} •••• {m.last4}</div>
+                                   <div className="text-xs text-kala-500">{m.type} â€¢â€¢â€¢â€¢ {m.last4}</div>
                                 </div>
                              </div>
                              {selectedId === m.id && <CheckCircle className="w-4 h-4 text-green-500" />}
@@ -291,7 +291,7 @@ interface ArtistProfileProps {
                                 <Wallet className="w-4 h-4 text-purple-400" />
                                 <div>
                                    <div className="text-sm font-bold text-white">{m.label}</div>
-                                   <div className="text-xs text-kala-500">{m.network} • {m.address.substring(0,6)}...</div>
+                                   <div className="text-xs text-kala-500">{m.network} â€¢ {m.address.substring(0,6)}...</div>
                                 </div>
                              </div>
                              {selectedId === m.id && <CheckCircle className="w-4 h-4 text-purple-500" />}
@@ -335,7 +335,7 @@ interface ArtistProfileProps {
                 </h1>
                 <div className="flex items-center gap-2 text-kala-300 text-sm mt-1">
                   <MapPin className="w-4 h-4" /> {localArtist.location}
-                  <span className="mx-1">•</span>
+                  <span className="mx-1">â€¢</span>
                   {localArtist.genres.join(', ')}
                 </div>
               </div>
@@ -599,7 +599,7 @@ interface ArtistProfileProps {
                      <div key={i} className="flex justify-between items-center p-3 bg-kala-900/50 rounded-lg">
                         <div>
                            <div className="text-white font-bold text-sm">${payout.amount.toLocaleString()}</div>
-                           <div className="text-xs text-kala-500">{payout.date} • {payout.method}</div>
+                           <div className="text-xs text-kala-500">{payout.date} â€¢ {payout.method}</div>
                         </div>
                         <span className={`text-xs px-2 py-1 rounded font-bold ${
                            payout.status === 'Completed' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
@@ -990,7 +990,7 @@ interface ArtistProfileProps {
                                   {wallet.isDefault && <span className="text-[10px] bg-purple-500/20 text-purple-400 px-1.5 rounded border border-purple-500/30">DEFAULT</span>}
                                 </div>
                                 <div className="text-xs text-kala-400 flex items-center gap-1">
-                                   <span className="text-kala-500">{wallet.network}</span> • {wallet.address}
+                                   <span className="text-kala-500">{wallet.network}</span> â€¢ {wallet.address}
                                 </div>
                              </div>
                           </div>
