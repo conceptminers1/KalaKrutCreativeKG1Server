@@ -529,7 +529,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
         </div>
       )}
 
-      {/* Member Preview Modal */}
+            {/* Member Preview Modal */}
       {showMembersPreview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
            <div className="bg-kala-900 border border-kala-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative">
@@ -537,25 +537,40 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
                  <h3 className="text-white font-bold flex items-center gap-2">
                     <Users className="w-5 h-5 text-blue-400" /> Community Snapshot
                  </h3>
-                 <button onClick={() => setShowMembersPreview(false)} className="text-kala-500 hover:text-white">
+                 <button 
+                   onClick={() => setShowMembersPreview(false)} 
+                   className="text-kala-500 hover:text-white"
+                 >
                     <X className="w-5 h-5" />
                  </button>
               </div>
               <div className="p-6 space-y-4">
-                 <p className="text-sm text-kala-400 mb-2">Join {stats.totalMembers.toLocaleString()} creators, venues, and organizers.</p>
+                 <p className="text-sm text-kala-400 mb-2">
+                   Join {stats.totalMembers.toLocaleString()} creators, venues, and organizers.
+                 </p>
                  <div className="space-y-3">
                     {previewMembers.map((member, i) => (
                        <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-kala-800 border border-kala-700">
-                          <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-kala-600" />
+                          <img 
+                            src={member.avatar} 
+                            alt={member.name} 
+                            className="w-10 h-10 rounded-full object-cover border border-kala-600" 
+                          />
                           <div>
                              <div className="text-sm font-bold text-white flex items-center gap-2">
                                {member.name} 
-                               {!(member as any).isMock && <span className="text-[9px] bg-green-500/20 text-green-400 px-1 rounded border border-green-500/30">NEW</span>}
+                               {!(member as any).isMock && (
+                                 <span className="text-[9px] bg-green-500/20 text-green-400 px-1 rounded border border-green-500/30">
+                                   NEW
+                                 </span>
+                               )}
                              </div>
                              <div className="text-xs text-kala-400 flex items-center gap-2">
                                 <span>{member.role}</span>
                                 <span className="w-1 h-1 rounded-full bg-kala-600"></span>
-                                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {member.location}</span>
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" /> {member.location}
+                                </span>
                              </div>
                           </div>
                        </div>
@@ -563,8 +578,10 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
                  </div>
                  
                  <div className="pt-4 border-t border-kala-800">
-                    <p className="text-xs text-center text-kala-500 mb-3">New users must register to access the full portal.</p>
-                                        <button 
+                    <p className="text-xs text-center text-kala-500 mb-3">
+                      New users must register to access the full portal.
+                    </p>
+                    <button 
                       onClick={() => startTransition(() => { setShowMembersPreview(false); onJoin(); })}
                       className="w-full py-3 bg-kala-secondary text-kala-900 font-bold rounded-xl hover:bg-cyan-400 transition-colors shadow-lg shadow-cyan-900/20"
                     >
@@ -575,7 +592,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
            </div>
         </div>
       )}
-    </div>
+    </div> // This div closes the main component container
   );
 };
 
