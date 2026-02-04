@@ -345,20 +345,6 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
               <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <LinktreeIcon className="w-4 h-4" /> </a>
            </div>
         </div>
-
-      {/* Footer */}
-      <footer className="bg-kala-900 border-t border-kala-800 py-12">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="text-kala-500 text-sm"> &copy; 2024 KalaKrut Creative. All rights reserved. </div>
-           <div className="flex gap-4">
-              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <XIcon className="w-4 h-4" /> </a>
-              <a href="https://www.instagram.com/kalakrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Instagram className="w-4 h-4" /> </a>
-              <a href="https://www.facebook.com/kalakrutagn" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Facebook className="w-4 h-4" /> </a>
-              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <SubstackIcon className="w-4 h-4" /> </a>
-              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <DiscordIcon className="w-4 h-4" /> </a>
-              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <LinktreeIcon className="w-4 h-4" /> </a>
-           </div>
-        </div>
       </footer>
 
       {/* Footer */}
