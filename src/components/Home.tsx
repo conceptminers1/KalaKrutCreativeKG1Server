@@ -592,7 +592,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
            </div>
         </div>
       )}
-    </div> // This div closes the main component container
+    </div>
   );
 };
 
