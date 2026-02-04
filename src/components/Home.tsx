@@ -72,7 +72,7 @@ const LinktreeIcon = ({ className }: { className?: string }) => (
 
 const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
   const { users, stats, setDemoMode, isDemoMode, demoModeAvailable } = useData();
-  const { notify } = useToast();
+  const [isPending, startTransition] = useTransition();
   const [selectedRoleForLogin, setSelectedRoleForLogin] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showMembersPreview, setShowMembersPreview] = useState(false);
