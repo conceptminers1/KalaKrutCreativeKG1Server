@@ -332,21 +332,33 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
           <LoginCard role={UserRole.DAO_MEMBER} icon={Globe2} desc="Create proposals and Vote on proposals" />  
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-kala-900 border-t border-kala-800 py-12">
+       {/* Footer */}
+       <footer className="bg-kala-900 border-t border-kala-800 py-12">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="text-kala-500 text-sm"> &copy; 2024 KalaKrut Creative. All rights reserved. </div>
-           <div className="flex gap-4">
-              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <XIcon className="w-4 h-4" /> </a>
-              <a href="https://www.instagram.com/kalakrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Instagram className="w-4 h-4" /> </a>
-              <a href="https://www.facebook.com/kalakrutagn" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <Facebook className="w-4 h-4" /> </a>
-              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <SubstackIcon className="w-4 h-4" /> </a>
-              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <DiscordIcon className="w-4 h-4" /> </a>
-              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white transition-colors"> <LinktreeIcon className="w-4 h-4" /> </a>
+           <div className="text-kala-500 text-sm">
+             &copy; 2024 KalaKrut Creative. All rights reserved.
            </div>
-        </div>
-      </footer>
+
+           <div className="flex gap-4">
+              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <XIcon className="w-4 h-4" />
+              </a>
+              <a href="https://www.instagram.com/kalakrut?igsh=MWcyc2htOGpwN3owYw==" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="https://www.facebook.com/kalakrutagn?mibextid=ZbWKwL" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <SubstackIcon className="w-4 h-4" />
+              </a>
+              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <DiscordIcon className="w-4 h-4" />
+              </a>
+              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
+                <LinktreeIcon className="w-4 h-4" />
+              </a>
+           </div>
 
            <div className="flex gap-6 text-sm font-bold text-kala-400">
              <a href="#" className="hover:text-white transition-colors">Terms</a>
@@ -355,7 +367,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
            </div>
         </div>
       </footer>
-
+      
       {/* Dual Login Modal */}
       {selectedRoleForLogin && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
