@@ -57,8 +57,8 @@ interface ArtistProfileProps {
   onUpdateProfile?: (data: Partial<IArtistProfile>) => void;
 }
 
-const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, isOwnProfile = false, isBlocked = false, onUpdateProfile }) => {
-  const { notify } = useToast();
+  const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, isOwnProfile = false, isBlocked = false, onUpdateProfile }) => {if (!artist) {return null;
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'overview' | 'invest' | 'settings' | 'financials' | 'leads' | 'guide'>('overview');
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [localArtist, setLocalArtist] = useState(artist);
@@ -119,7 +119,7 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
 
     setManualQuery('');
     setManualResponse('');
-    notify("Lead query saved successfully!", "success");
+    toast("Lead query saved successfully!", "success");
   };
 
   const handleSubscribe = () => {
@@ -131,22 +131,22 @@ const ArtistProfile: React.FC<ArtistProfileProps> = ({ artist, onChat, onBook, i
         planName: 'Community Pro'
       }
     }));
-    notify("Subscription activated! You can now access the guide.", "success");
+    toast(" Subscription activated! You can now access the guide.", "success");
   };
   const handleArtistSearch = async () => {
     if (!artistQuery) {
-        notify("Please enter an artist name to search.", "warning");
+        toast("Please enter an artist name to search.", "warning");
         return;
     }
     setIsSearching(true);
     const results = await searchArtist(artistQuery);
     setArtistResults(results);
     setIsSearching(false);
-    notify(`Found ${results.length} artists.`, "success");
+    toast(`Found ${results.length} artists.`, "success");
   };
   const handleAcceptDaoInvite = () => {
     setLocalArtist(prev => ({ ...prev, role: UserRole.DAO_MEMBER }));
-    notify("Welcome to the DAO! You are now an active voting member.", "success");
+    toast("Welcome to the DAO! You are now an active voting member.", "success");
   };
 
   // --- Profile Editing Handlers ---
