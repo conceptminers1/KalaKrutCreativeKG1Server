@@ -282,7 +282,7 @@ interface ArtistProfileProps {
 
                  <button 
                    disabled={!selectedId || amount <= 0}
-                   onClick={() => { notify(`Withdrawal of $${amount} requested to destination ${selectedId}`, 'info'); setShowPayoutModal(false); }}
+                   onClick={() => {toast(`Withdrawal of $${amount} requested to destination ${selectedId}`, 'info'); setShowPayoutModal(false); }}
                    className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-green-900/20"
                  >
                     Confirm Withdrawal
@@ -1004,4 +1004,4 @@ interface ArtistProfileProps {
   );
 };
 
-export default ArtistProfile;
+export default ArtistProfile
