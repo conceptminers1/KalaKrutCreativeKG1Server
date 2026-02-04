@@ -71,6 +71,7 @@ const LinktreeIcon = ({ className }: { className?: string }) => (
 );
 
 const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
+  const { toast } = useToast();
   const { users, stats, setDemoMode, isDemoMode, demoModeAvailable } = useData();
   const [isPending, startTransition] = useTransition();
   const [selectedRoleForLogin, setSelectedRoleForLogin] = useState<UserRole | null>(null);
@@ -91,7 +92,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
   const handleLoginClick = (method: 'web2' | 'web3') => {
     if (selectedRoleForLogin) {
       if (loginMode === 'live' && method === 'web2' && (!email || !password)) {
-         notify("Please enter email and password for Live access.", "warning");
+         toast("Please enter email and password for Live access.", "warning");
          return;
       }
 
@@ -346,34 +347,6 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
            </div>
         </div>
       </footer>
-
-      {/* Footer */}
-      <footer className="bg-kala-900 border-t border-kala-800 py-12">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="text-kala-500 text-sm">
-             &copy; 2024 KalaKrut Creative. All rights reserved.
-           </div>
-
-           <div className="flex gap-4">
-              <a href="https://x.com/KalaKrut" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
-                <XIcon className="w-4 h-4" />
-              </a>
-              <a href="https://www.instagram.com/kalakrut?igsh=MWcyc2htOGpwN3owYw==" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a href="https://www.facebook.com/kalakrutagn?mibextid=ZbWKwL" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
-                <Facebook className="w-4 h-4" />
-              </a>
-              <a href="https://kalakrut.substack.com/" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
-                <SubstackIcon className="w-4 h-4" />
-              </a>
-              <a href="https://discord.com/invite/Nk5e4HCX" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
-                <DiscordIcon className="w-4 h-4" />
-              </a>
-              <a href="https://linktr.ee/KalaKrutPlatform" target="_blank" rel="noreferrer" className="p-2 bg-kala-800 rounded-full text-kala-400 hover:text-white hover:bg-kala-700 transition-colors">
-                <LinktreeIcon className="w-4 h-4" />
-              </a>
-           </div>
 
            <div className="flex gap-6 text-sm font-bold text-kala-400">
              <a href="#" className="hover:text-white transition-colors">Terms</a>
