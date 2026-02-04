@@ -165,7 +165,7 @@ interface ArtistProfileProps {
       reader.onloadend = () => {
         if (typeof reader.result === 'string') {
           handleProfileUpdate(field, reader.result);
-          notify(`${field === 'avatar' ? 'Avatar' : 'Cover Image'} updated successfully!`, "success");
+          toast(`${field === 'avatar' ? 'Avatar' : 'Cover Image'} updated successfully!`, "success");
         }
       };
       reader.readAsDataURL(file);
@@ -175,17 +175,17 @@ interface ArtistProfileProps {
   const handlePasswordChange = () => {
     // If user has a password set, verify current
     if (localArtist.password && currentPassword !== localArtist.password) {
-      notify("Current password incorrect.", "error");
+      toast("Current password incorrect.", "error");
       return;
     }
     
     if (newPassword.length < 6) {
-      notify("New password must be at least 6 characters.", "warning");
+      toast("New password must be at least 6 characters.", "warning");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      notify("New passwords do not match.", "error");
+      toast("New passwords do not match.", "error");
       return;
     }
 
@@ -198,7 +198,7 @@ interface ArtistProfileProps {
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
-    notify("Password changed successfully!", "success");
+    toast("Password changed successfully!", "success");
   };
 
   const handleSocialChange = (index: number, field: 'platform' | 'followers', value: string) => {
