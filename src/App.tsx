@@ -27,6 +27,7 @@ const ArtistProfile = React.lazy(() => import('./components/ArtistProfile'));
 const Roster = React.lazy(() => import('./components/Roster'));
 const ArtistRegistration = React.lazy(() => import('./components/ArtistRegistration'));
 const AdminLeads = React.lazy(() => import('./components/AdminLeads'));
+const LeadsAndAi = React.lazy(() => import('./components/LeadsAndAi'));
 const AdminEmailTemplates = React.lazy(() => import('./components/AdminEmailTemplates'));
 const AdminSupport = React.lazy(() => import('./components/AdminSupport'));
 const TreasuryDashboard = React.lazy(() => import('./components/TreasuryDashboard'));
@@ -35,6 +36,7 @@ const AdminContracts = React.lazy(() => import('./components/AdminContracts'));
 const Forum = React.lazy(() => import('./components/Forum'));
 const CreativeStudio = React.lazy(() => import('./components/CreativeStudio'));
 const MembershipPlans = React.lazy(() => import('./components/MembershipPlans'));
+const MyCircle = React.lazy(() => import('./components/MyCircle'));
 
 const PageLoader = () => (
   <div className="h-[60vh] w-full flex flex-col items-center justify-center text-kala-400">
@@ -51,13 +53,13 @@ const PageLoader = () => (
 const BlockedScreen: React.FC<{ onAppeal: (reason: string) => void }> = ({ onAppeal }) => {
   const [appealReason, setAppealReason] = useState('');
   const [hasAppealed, setHasAppealed] = useState(false);
-  const { notify } = useToast();
+  const { toast } = useToast();
 
   const handleSubmit = () => {
      if (!appealReason.trim()) return;
      onAppeal(appealReason);
      setHasAppealed(true);
-     notify("Appeal submitted to moderation team.", "info");
+     toast("Appeal submitted to moderation team.", "info");
   };
 
   return (
@@ -118,7 +120,7 @@ const AppContent: React.FC = () => {
   const [moderationCases, setModerationCases] = useState<ModerationCase[]>(MOCK_MODERATION_CASES);
 
   const { isConnected: isWalletConnected, connect: connectWallet, disconnect: disconnectWallet, walletAddress, balances } = useWallet();
-  const { notify } = useToast();
+  const { toast } = useToast();
   const { isDemoMode, findUserByEmail, findUserByWallet, updateUser } = useData();
 
   useEffect(() => {
@@ -145,7 +147,7 @@ const AppContent: React.FC = () => {
         timestamp: new Date().toLocaleString()
      };
      setModerationCases(prev => [newCase, ...prev]);
-     notify("Account suspended due to policy violation.", "error");
+     toast("Account suspended due to policy violation.", "error");
   };
 
   const handleAppeal = (reason: string) => {
@@ -161,7 +163,7 @@ const AppContent: React.FC = () => {
         }
         return c;
      }));
-     notify(`Case ${caseId} updated: ${decision}`, "success");
+     toast(`Case ${caseId} updated: ${decision}`, "success");
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -177,7 +179,7 @@ const AppContent: React.FC = () => {
     setIsConnecting(true);
     await connectWallet();
     setIsConnecting(false);
-    notify("Wallet connected successfully!", "success");
+    toast("Wallet connected successfully!", "success");
   };
 
   const handleLogin = async (role: UserRole, method: 'web2' | 'web3', credentials?: any) => {
@@ -187,10 +189,10 @@ const AppContent: React.FC = () => {
        if (method === 'web3') await handleWalletConnect();
     } else {
        if (method === 'web2') {
-          if (!credentials?.email) { notify("Invalid credentials.", "error"); return; }
+          if (!credentials?.email) { toast("Invalid credentials.", "error"); return; }
           const found = findUserByEmail(credentials.email);
-          if (!found) { notify("User not found. Please register first.", "error"); return; }
-          if (found.password && found.password !== credentials.password) { notify("Incorrect password.", "error"); return; }
+          if (!found) { toast("User not found. Please register first.", "error"); return; }
+          if (found.password && found.password !== credentials.password) { toast("Incorrect password.", "error"); return; }
           targetUser = { ...MOCK_ARTIST_PROFILE, ...found };
           targetUser.password = found.password;
        } else {
@@ -199,7 +201,7 @@ const AppContent: React.FC = () => {
           if (found) { targetUser = { ...MOCK_ARTIST_PROFILE, ...found }; }
           else {
              targetUser = { ...MOCK_ARTIST_PROFILE, id: 'u_wallet_guest', name: 'Wallet User', role: UserRole.REVELLER };
-             notify("Wallet recognized. Logged in as Guest.", "info");
+             toast("Wallet recognized. Logged in as Guest.", "info");
           }
        }
     }
@@ -213,7 +215,7 @@ const AppContent: React.FC = () => {
     });
 
     if (targetUser.role === UserRole.ARTIST) { setIsProfileComplete(true); }
-    notify(`Welcome back, ${targetUser.name}`, "info");
+    toast(`Welcome back, ${targetUser.name}`, "info");
   };
 
   const handleLogout = () => {
@@ -221,7 +223,7 @@ const AppContent: React.FC = () => {
     disconnectWallet();
     navigate('home');
     setIsUserBlocked(false);
-    notify("Logged out successfully.", "info");
+    toast("Logged out successfully.", "info");
   };
 
   const handleViewProfile = (id: string) => {
@@ -256,25 +258,6 @@ const AppContent: React.FC = () => {
     if (selectedProfile.id === currentUser.id) { setSelectedProfile(updatedUser); }
   };
 
-  const RoleSwitcher = () => {
-    if (!isDemoMode) return null;
-    return (
-      <div className="flex items-center gap-2 mr-4 bg-kala-800 rounded-lg p-1">
-        <span className="text-xs text-kala-500 px-2">View As:</span>
-        <select value={currentUserRole} onChange={(e) => {
-              const newRole = e.target.value as UserRole;
-              startTransition(() => {
-                setCurrentUserRole(newRole);
-                setCurrentUser(MOCK_USERS_BY_ROLE[newRole]);
-              });
-              notify(`Switched view to ${newRole}`, "info");
-          }} className="bg-kala-700 text-white text-xs rounded px-2 py-1 border-none outline-none">
-          {Object.values(UserRole).map(role => (<option key={role} value={role}>{role}</option>))}
-        </select>
-      </div>
-    );
-  };
-
   const UserWidget = () => (
     <div className="flex flex-col md:flex-row items-end md:items-center justify-between mb-8 gap-4">
        <div className="text-white">
@@ -282,7 +265,6 @@ const AppContent: React.FC = () => {
           <p className="text-kala-400 text-sm">Role: {currentUserRole} â€¢ {currentUser.location}</p>
        </div>
        <div className="flex items-center gap-4">
-         <RoleSwitcher />
          <div className="relative hidden lg:block">
            <Search className="absolute left-3 top-2.5 w-4 h-4 text-kala-500" />
            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={handleSearch} placeholder="Search portal..." className="bg-kala-800 border border-kala-700 rounded-full pl-10 pr-4 py-2 text-sm text-white focus:ring-1 focus:ring-kala-secondary outline-none w-48 transition-all focus:w-64" />
@@ -337,7 +319,9 @@ const AppContent: React.FC = () => {
             case 'studio': return <CreativeStudio onBlockUser={handleBlockUser} />;
             case 'admin_email_templates': return currentUserRole === UserRole.ADMIN ? <AdminEmailTemplates isDemoMode={isDemoMode} /> : <div>Access Denied</div>;
             case 'membership': return <MembershipPlans currentUser={currentUser} />;
-            case 'leads': return currentUserRole === UserRole.ADMIN ? <AdminLeads /> : <div>Access Denied</div>;
+            case 'my_circle': return <MyCircle currentUser={currentUser} />;
+            case 'leads': return currentUserRole === UserRole.ADMIN ? <AdminLeads /> : <LeadsAndAi />;
+            case 'leads_and_ai': return <LeadsAndAi />;
             case 'admin_support': return currentUserRole === UserRole.ADMIN ? <AdminSupport moderationCases={moderationCases} onDecision={handleAdminDecision} /> : <div>Access Denied</div>;
             case 'contracts': return (currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.DAO_Governor) ? <AdminContracts onBlockUser={handleBlockUser} onChat={(name, avatar) => { setChatRecipient({ ...MOCK_ARTIST_PROFILE, name, avatar }); setShowChat(true); }} /> : <div>Access Denied</div>;
             case 'treasury': return (currentUserRole === UserRole.ADMIN || currentUserRole === UserRole.DAO_Governor) ? <TreasuryDashboard /> : <div>Access Denied</div>;
@@ -405,7 +389,7 @@ const AppContent: React.FC = () => {
             <div className="max-w-3xl mx-auto px-6 py-8">
                <button onClick={() => navigate('home')} className="flex items-center gap-2 text-kala-400 hover:text-white mb-6 transition-colors"><ArrowLeft className="w-4 h-4" /> Back to Home</button>
                <Suspense fallback={<PageLoader />}>
-                  <ArtistRegistration onComplete={() => { notify("Registration received!", "success"); navigate('home'); }} onBlockUser={handleBlockUser} />
+                  <ArtistRegistration onComplete={() => { toast("Registration received!", "success"); navigate('home'); }} onBlockUser={handleBlockUser} />
                </Suspense>
             </div>
          </div>
