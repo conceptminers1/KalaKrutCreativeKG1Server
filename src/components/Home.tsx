@@ -97,7 +97,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
 
       // Using startTransition to prevent suspension errors during view swaps
       startTransition(() => {
-        setDemoMode(effectiveMode);
+        setDemoMode(loginMode);
         setTimeout(() => {
           onLogin(selectedRoleForLogin, method, { email, password });
           setIsLoading(false); 
