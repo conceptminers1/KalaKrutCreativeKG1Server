@@ -328,7 +328,7 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
           <LoginCard role={UserRole.SPONSOR} icon={Coins} desc="Fund events and support artists." />
           <LoginCard role={UserRole.REVELLER} icon={Users} desc="Buy tickets and follow your favorite artists." />
           <LoginCard role={UserRole.ADMIN} icon={ShieldCheck} desc="Platform oversight and analytics." />
-          <LoginCard role={UserRole.DAO_Governor} icon={ShieldCheck} desc="Govern the DAO and its Business." />
+          <LoginCard role={UserRole.DAO_GOVERNOR} icon={ShieldCheck} desc="Govern the DAO and its Business." />
           <LoginCard role={UserRole.DAO_MEMBER} icon={Globe2} desc="Create proposals and Vote on proposals" />  
         </div>
       </div>
