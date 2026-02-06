@@ -1,0 +1,251 @@
+// This Prisma schema is generated based on the TypeScript types in src/types.ts
+// It defines the database structure for the KalaKrut platform.
+// This version is adapted for SQLite compatibility.
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./tmp/dev.db"
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+// -------------------------------------
+// MODELS
+// -------------------------------------
+// Note: Enums and Json types are not supported by the default SQLite provider.
+// They are mapped to String types, and the application layer is responsible for validation and serialization.
+
+// Core User Model
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String?
+  avatar          String?
+  role            String           @default("REVELLER") // Mapped from UserRole enum
+  walletAddress   String?          @unique
+  xp              Int              @default(0)
+  level           Int              @default(1)
+  password        String?          // For mock auth, not for production use
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  artistProfile   ArtistProfile?
+  proposals       Proposal[]
+  moderationCases ModerationCase[]
+  transactions    Transaction[]
+  supportTickets  SupportTicket[]
+  threads         ForumThread[]
+  lead            Lead? // This user can be a lead
+}
+
+// Artist Specific Profile, extending the User model
+model ArtistProfile {
+  id           String   @id @default(cuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String   @unique
+  coverImage   String?
+  bio          String?
+  location     String?
+  genres       String?  // Stored as a comma-separated string
+  verified     Boolean  @default(false)
+  
+  // JSON blobs stored as strings. Application handles stringify/parse.
+  pressKit     String? // E.g., { photos: [], topTracks: [], techRiderUrl: "", socials: [] }
+  stats        String? // E.g., { gigsCompleted: 0, activeGigs: 0, rating: 0, responseTime: "" }
+  subscription String? // E.g., { planName: "", status: "", expiryDate: "" }
+  revenue      String? // E.g., { totalLifetime: 0, pendingPayout: 0, breakdown: {}, recentPayouts: [] }
+  
+  equityOpportunities EquityOpportunity[]
+  leadQueries         LeadQuery[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// DAO Governance Proposals
+model Proposal {
+  id                   String   @id @default(cuid())
+  title                String
+  description          String
+  votesFor             Int      @default(0)
+  votesAgainst         Int      @default(0)
+  deadline             DateTime
+  status               String   @default("Active") // Mapped from ProposalStatus enum
+  quorumRequired       Float
+  currentParticipation Float    @default(0)
+  isCritical           Boolean  @default(false)
+  contractData         String?  // Stored as a JSON string
+
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId String
+
+  createdAt DateTime @default(now())
+}
+
+// Items listed for sale or auction
+model MarketplaceItem {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  image       String?
+  type        String    // Mapped from MarketplaceItemType enum
+  price       Float
+  currency    String    @default("KALA") // Mapped from Currency enum
+  seller      String?   // Stored as a JSON string for seller info
+  isAuction   Boolean   @default(false)
+  endTime     DateTime?
+  condition   String?   // Mapped from ItemCondition enum
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tracks user moderation cases
+model ModerationCase {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  userName       String
+  userRole       String   // Mapped from UserRole enum
+  violationType  String
+  contentSnippet String
+  status         String   @default("AppealPending") // Mapped from ModerationStatus enum
+  appealReason   String?
+  
+  createdAt DateTime @default(now())
+  timestamp DateTime @default(now())
+}
+
+model TreasuryAsset {
+  id         String  @id @default(cuid())
+  symbol     String  @unique
+  name       String
+  balance    Float
+  valueUsd   Float
+  allocation Float
+  trend      String
+  
+  updatedAt DateTime @updatedAt
+}
+
+model StaffMember {
+  id             String   @id @default(cuid())
+  name           String
+  avatar         String?
+  email          String   @unique
+  role           String   // Mapped from StaffRole enum
+  department     String   // Mapped from StaffDepartment enum
+  status         String   @default("Active") // Mapped from StaffStatus enum
+  
+  designation    String
+  employmentDate DateTime
+  salary         Float
+  currency       String   @default("USD")
+  
+  lastActive DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Other supporting models translated from types.ts
+
+model EquityOpportunity {
+  id                        String   @id @default(cuid())
+  title                     String
+  type                      String
+  description               String
+  totalValuation            Float
+  currency                  String   // Mapped from Currency enum
+  equityAvailablePercentage Float
+  minInvestment             Float
+  tokenSymbol               String?
+  technology                String
+  termsSummary              String
+  riskLevel                 String
+  backersCount              Int      @default(0)
+
+  artistProfile   ArtistProfile @relation(fields: [artistProfileId], references: [id])
+  artistProfileId String
+
+  createdAt DateTime @default(now())
+}
+
+model LeadQuery {
+  id              String   @id @default(cuid())
+  date            DateTime
+  query           String
+  responseSummary String
+  method          String
+  isPaidService   Boolean
+
+  artistProfile   ArtistProfile @relation(fields: [artistProfileId], references: [id])
+  artistProfileId String
+
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        String
+  description String
+  amount      Float
+  currency    String   // Mapped from Currency enum
+  status      String
+  hash        String   @unique
+  date        DateTime
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  subject   String
+  category  String
+  priority  String
+  status    String
+  tier      String
+
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  userName  String
+
+  createdAt  DateTime @default(now())
+  lastUpdate DateTime @updatedAt
+}
+
+model ForumThread {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  replies     Int      @default(0)
+  views       Int      @default(0)
+  isPinned    Boolean  @default(false)
+
+  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String
+  authorName  String
+  authorAvatar String?
+  
+  lastActive DateTime
+  createdAt  DateTime @default(now())
+}
+
+// Lead Management Model
+model Lead {
+  id        String   @id @default(cuid())
+  status    String   @default("New") // "New", "Contacted", "In-Progress", "Closed"
+
+  // Relation to the User who is the lead
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,31 @@
+steps:
+  # 1. Install Dependencies
+  - name: 'node:20'
+    entrypoint: 'npm'
+    args: ['install']
+
+  # 2. Build the React Application (Production Optimization)
+  - name: 'node:20'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    env:
+      - 'REACT_APP_ENV=production'
+
+  # 3. (Optional) Run Tests - Ensure code quality before deploying
+  # - name: 'node:20'
+  #   entrypoint: 'npm'
+  #   args: ['test', '--', '--watchAll=false']
+
+  # 4. Deploy to Firebase Hosting
+  # Note: Requires the Cloud Build Service Account to have 'Firebase Admin' role
+  - name: 'gcr.io/$PROJECT_ID/firebase'
+    args: ['deploy', '--project', '$PROJECT_ID', '--only', 'hosting']
+
+# Save build artifacts (optional, for debugging)
+artifacts:
+  objects:
+    location: 'gs://$PROJECT_ID-build-artifacts/'
+    paths: ['build/**']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
