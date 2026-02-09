@@ -1,219 +1,210 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { RosterMember, MarketplaceItem, Proposal, ArtistProfile, UserRole, Artist } from '../types';
-import { MOCK_ROSTER, MOCK_MARKETPLACE_ITEMS, MOCK_PROPOSALS } from '../mockData';
+import React, { createContext, useContext, useState } from 'react';
+import { RosterMember, Message, Proposal, LeaderboardEntry, ArtistProfile, Booking, MarketplaceItem, ServiceListing, Article, Lead, ForumThread, Transaction, IPFSAsset, SupportTicket, SubscriptionPlan, TreasuryAsset, StaffMember, ModerationCase, UserRole } from '../types';
 
-// Lead interface, extending the basic Artist type
-interface Lead extends Artist {
-  status: 'New' | 'Contacted' | 'Closed';
-}
+import { 
+  MOCK_ROSTER as initialRoster,
+  MOCK_PROPOSALS as initialProposals,
+  MOCK_LEADERBOARD as initialLeaderboard,
+  MOCK_MARKETPLACE_ITEMS as initialMarketplaceItems,
+  MOCK_SERVICES as initialServiceListings,
+  MOCK_ARTICLES as initialArticles,
+  MOCK_THREADS as initialForumThreads,
+  MOCK_TICKETS as initialSupportTickets,
+  MOCK_TREASURY_ASSETS as initialTreasuryAssets,
+  MOCK_STAFF as initialStaff,
+  MOCK_MODERATION_CASES as initialModerationCases,
+  MOCK_USERS_BY_ROLE,
+  MOCK_ARTIST_PROFILE
+} from '../mockData';
 
-export interface DataContextType {
-  users: RosterMember[];
-  marketItems: MarketplaceItem[];
+// --- DEFINITIVE FIX: Merge All User Data at the Source ---
+// This function creates a single, clean list of users by merging the demo stubs with real profiles.
+const getMergedRoster = () => {
+  const profileMap = new Map<string, ArtistProfile>();
+
+  // 1. Add all base users from the main roster to the map, keyed by their unique ID.
+  // This includes the "demo_artist", "demo_venue" etc., which are needed for login.
+  initialRoster.forEach(member => {
+    profileMap.set(member.id, {
+      ...MOCK_ARTIST_PROFILE, // Start with a generic fallback profile
+      ...member, // Apply the specific member data (id, role, etc.)
+    });
+  });
+
+  // 2. Now, merge the REAL user profiles from MOCK_USERS_BY_ROLE.
+  // This finds the correct user by ID and merges the real name and details over the demo data.
+  Object.values(MOCK_USERS_BY_ROLE).forEach(realProfile => {
+    if (realProfile) {
+      const existingProfile = profileMap.get(realProfile.id) || {};
+      // Merge the real profile onto the existing one. The real name and avatar will overwrite the demo/generic ones.
+      profileMap.set(realProfile.id, { ...existingProfile, ...realProfile });
+    }
+  });
+  
+  // The final list now contains a single, correct entry for every user.
+  return Array.from(profileMap.values());
+};
+
+
+const rosterWithFullProfiles = getMergedRoster();
+
+interface DataContextType {
+  currentUser: ArtistProfile | null;
+  roster: ArtistProfile[];
+  messages: Message[];
   proposals: Proposal[];
+  leaderboard: LeaderboardEntry[];
+  bookings: Booking[];
+  marketplaceItems: MarketplaceItem[];
+  serviceListings: ServiceListing[];
+  articles: Article[];
   leads: Lead[];
-  addUser: (user: ArtistProfile) => void;
-  updateUser: (user: Partial<RosterMember>) => void;
+  forumThreads: ForumThread[];
+  transactions: Transaction[];
+  ipfsAssets: IPFSAsset[];
+  supportTickets: SupportTicket[];
+  subscriptionPlans: SubscriptionPlan[];
+  treasuryAssets: TreasuryAsset[];
+  staff: StaffMember[];
+  moderationCases: ModerationCase[];
+  loading: boolean;
+  login: (user: ArtistProfile | RosterMember) => void;
+  logout: () => void;
+  addMessage: (message: Message) => void;
+  addProposal: (proposal: Proposal) => void;
+  updateUser: (user: ArtistProfile) => void;
+  addUser: (user: Omit<RosterMember, 'id'>) => RosterMember;
   addMarketItem: (item: MarketplaceItem) => void;
-  addLead: (artist: Artist) => boolean; // Returns true if added, false if duplicate
-  purgeMockData: () => void;
-  isDemoMode: boolean;
-  setDemoMode: (isDemo: boolean) => void;
-  demoModeAvailable: boolean;
-  setDemoModeAvailable: (available: boolean) => void;
-  stats: {
-    totalMembers: number;
-    activeGigs: number;
-    totalTransactions: string;
-  };
-  // Auth Helpers
-  findUserByEmail: (email: string) => RosterMember | undefined;
-  findUserByWallet: (address: string) => RosterMember | undefined;
+  addLead: (artist: { id: string; name: string; bio: string; }) => boolean;
+  setLeads: React.Dispatch<React.SetStateAction<Lead[]>>;
+  updateProposal: (updatedProposal: Proposal) => void;
+  updateBooking: (updatedBooking: Booking) => void;
+  updateTransaction: (updatedTransaction: Transaction) => void;
+  updateIpfsAsset: (updatedAsset: IPFSAsset) => void;
+  updateTicket: (updatedTicket: SupportTicket) => void;
+  updateStaffMember: (updatedStaff: StaffMember) => void;
+  updateModerationCase: (updatedCase: ModerationCase) => void;
 }
 
-export const DataContext = createContext<DataContextType | undefined>(undefined);
+const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// The custom hook that was missing
 export const useData = () => {
   const context = useContext(DataContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useData must be used within a DataProvider');
   }
   return context;
 };
 
-const tagMocks = (data: any[]) => data.map(item => ({ ...item, isMock: true }));
-
-const SYSTEM_ADMIN: RosterMember = {
-  id: 'sys_admin_live',
-  name: 'System Admin (Live)',
-  role: UserRole.SYSTEM_ADMIN_LIVE,
-  avatar: 'https://ui-avatars.com/api/?name=System+Admin&background=0D8ABC&color=fff',
-  location: 'Server Room',
-  verified: true,
-  onboardingComplete: true,
-  rating: 5.0,
-  assets: { ips: [], contents: [], events: [], products: [], services: [], equipment: [], instruments: [], tickets: [] },
-  subscriberOnly: { email: 'admin@kalakrut.io', phone: 'N/A', agentContact: 'System' },
-  isMock: false
-};
-
-const SUPER_ADMIN: RosterMember = {
-  id: 'super_admin_bhoomin',
-  name: 'Super Admin',
-  role: UserRole.ADMIN,
-  avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=8b5cf6&color=fff',
-  location: 'Global HQ',
-  verified: true,
-  onboardingComplete: true,
-  rating: 5.0,
-  assets: { ips: [], contents: [], events: [], products: [], services: [], equipment: [], instruments: [], tickets: [] },
-  subscriberOnly: { email: 'bhoominpandya@gmail.com', phone: '+1 (555) 000-SUPER', agentContact: 'Direct' },
-  isMock: false,
-  password: 'Creatkala!2'
-};
-
-export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<ArtistProfile | null>(null);
   
-  const [allUsers, setAllUsers] = useState<RosterMember[]>(() => {
-    try {
-      const saved = localStorage.getItem('kk_users');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          let users = parsed.filter(Boolean);
-          if (!users.some(u => u && u.id === SYSTEM_ADMIN.id)) users.push(SYSTEM_ADMIN);
-          if (!users.some(u => u && u.id === SUPER_ADMIN.id)) users.push(SUPER_ADMIN);
-          return users;
-        }
-      }
-    } catch (error) {
-      console.error("CRITICAL: Failed to load 'kk_users'.", error);
-    }
-    return [...tagMocks(MOCK_ROSTER), SYSTEM_ADMIN, SUPER_ADMIN];
-  });
+  const [roster, setRoster] = useState<ArtistProfile[]>(rosterWithFullProfiles);
+  const [proposals, setProposals] = useState<Proposal[]>(initialProposals);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard);
+  const [marketplaceItems, setMarketplaceItems] = useState<MarketplaceItem[]>(initialMarketplaceItems || []);
+  const [serviceListings, setServiceListings] = useState<ServiceListing[]>(initialServiceListings || []);
+  const [articles, setArticles] = useState<Article[]>(initialArticles || []);
+  const [forumThreads, setForumThreads] = useState<ForumThread[]>(initialForumThreads || []);
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(initialSupportTickets || []);
+  const [treasuryAssets, setTreasuryAssets] = useState<TreasuryAsset[]>(initialTreasuryAssets || []);
+  const [staff, setStaff] = useState<StaffMember[]>(initialStaff || []);
+  const [moderationCases, setModerationCases] = useState<ModerationCase[]>(initialModerationCases || []);
 
-  const [allLeads, setAllLeads] = useState<Lead[]>(() => {
-    try {
-      const saved = localStorage.getItem('kk_leads');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed.filter(Boolean);
-      }
-    } catch (error) {
-      console.error("CRITICAL: Failed to load 'kk_leads'.", error);
-    }
-    return [];
-  });
-
-  const [allMarketItems, setAllMarketItems] = useState<MarketplaceItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('kk_market');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed.filter(Boolean);
-      }
-    } catch (error) {
-      console.error("CRITICAL: Failed to load 'kk_market'.", error);
-    }
-    return tagMocks(MOCK_MARKETPLACE_ITEMS);
-  });
-
-  const [allProposals, setAllProposals] = useState<Proposal[]>(() => {
-    try {
-      const saved = localStorage.getItem('kk_proposals');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed.filter(Boolean);
-      }
-    } catch (error) {
-      console.error("CRITICAL: Failed to load 'kk_proposals'.", error);
-    }
-    return tagMocks(MOCK_PROPOSALS);
-  });
-
-  const [isDemoMode, setIsDemoMode] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [ipfsAssets, setIpfsAssets] = useState<IPFSAsset[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
   
-  const [demoModeAvailable, setDemoModeAvailable] = useState(() => {
-    const saved = localStorage.getItem('kk_demo_available');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => { localStorage.setItem('kk_users', JSON.stringify(allUsers)); }, [allUsers]);
-  useEffect(() => { localStorage.setItem('kk_leads', JSON.stringify(allLeads)); }, [allLeads]);
-  useEffect(() => { localStorage.setItem('kk_market', JSON.stringify(allMarketItems)); }, [allMarketItems]);
-  useEffect(() => { localStorage.setItem('kk_proposals', JSON.stringify(allProposals)); }, [allProposals]);
-  
-  useEffect(() => { 
-    localStorage.setItem('kk_demo_available', JSON.stringify(demoModeAvailable));
-    if (!demoModeAvailable) setIsDemoMode(false);
-  }, [demoModeAvailable]);
-
-  const addUser = (profile: ArtistProfile) => {
-    const newRosterMember: RosterMember = {
-      id: profile.id, name: profile.name, role: profile.role,
-      avatar: profile.avatar || 'https://picsum.photos/seed/new_user/200',
-      location: profile.location, verified: false, rating: 0,
-      onboardingComplete: false,
-      walletAddress: profile.walletAddress,
-      assets: { ips: [], contents: [], events: [], products: [], services: [], equipment: [], instruments: [], tickets: [] },
-      subscriberOnly: { email: profile.email || 'hidden', phone: 'Hidden', agentContact: 'Direct' },
-      isMock: false, password: profile.password
-    };
-    setAllUsers(prev => [newRosterMember, ...prev.filter(p => p.id !== newRosterMember.id)]);
+  const login = (user: ArtistProfile | RosterMember) => {
+    const fullProfile = roster.find(r => r.id === user.id);
+    setCurrentUser(fullProfile || null);
   };
 
-  const updateUser = (updates: Partial<RosterMember>) => {
-    setAllUsers(prev => prev.map(user => user.id === updates.id ? { ...user, ...updates } : user));
+  const logout = () => {
+    setCurrentUser(null);
   };
 
+  const addUser = (user: Omit<RosterMember, 'id'>): RosterMember => {
+    const newUser: RosterMember = { ...user, id: `user-${Date.now()}` };
+    setRoster(prev => [...prev, newUser as ArtistProfile]);
+    return newUser;
+  };
+
+  const updateUser = (updatedUser: ArtistProfile) => {
+    setRoster(prev => prev.map(user => user.id === updatedUser.id ? updatedUser : user));
+  };
+
+  const addMessage = (message: Message) => {
+    setMessages(prev => [...prev, message]);
+  };
+
+  const addProposal = (proposal: Proposal) => {
+    setProposals(prev => [proposal, ...prev]);
+  };
+  
   const addMarketItem = (item: MarketplaceItem) => {
-    setAllMarketItems(prev => [{ ...item, isMock: false }, ...prev]);
+    setMarketplaceItems(prev => [item, ...prev]);
   };
 
-  const addLead = (artist: Artist): boolean => {
+  const addLead = (artist: { id: string; name: string; bio: string; }): boolean => {
     let wasAdded = false;
-    setAllLeads(prev => {
-      if (prev.some(l => l.id === artist.id)) {
-        wasAdded = false;
-        return prev;
-      }
-      const newLead: Lead = { ...artist, status: 'New' };
-      wasAdded = true;
-      return [newLead, ...prev];
+    setLeads(prev => {
+        if (prev.some(l => l.id === artist.id)) {
+            wasAdded = false;
+            return prev;
+        }
+        const newLead: Lead = {
+            id: artist.id,
+            email: `${artist.name.replace(/\s+/g, '.') .toLowerCase()}@example-lead.com`,
+            source: 'MusicBrainz Search',
+            status: 'New',
+            generatedDate: new Date().toISOString(),
+            notes: artist.bio || 'No bio available.',
+        };
+        wasAdded = true;
+        return [newLead, ...prev];
     });
     return wasAdded;
   };
 
-  const purgeMockData = () => {
-    if (window.confirm("WARNING: This will delete all 'Working Example' data. This action cannot be undone. Are you sure?")) {
-      setAllUsers(prev => prev.filter(u => !u.isMock));
-      setAllMarketItems(prev => prev.filter(i => !i.isMock));
-      setAllProposals(prev => prev.filter(p => !p.isMock));
-    }
+  const updateProposal = (updatedProposal: Proposal) => {
+    setProposals(prev => prev.map(p => p.id === updatedProposal.id ? updatedProposal : p));
   };
 
-  const findUserByEmail = (email: string) => allUsers.find(u => u.subscriberOnly?.email?.toLowerCase() === email.toLowerCase());
-  const findUserByWallet = (address: string) => allUsers.find(u => u.walletAddress?.toLowerCase() === address.toLowerCase()); 
+  const updateBooking = (updatedBooking: Booking) => {
+    setBookings(prev => prev.map(b => b.id === updatedBooking.id ? updatedBooking : b));
+  };
 
-  const visibleUsers = isDemoMode ? allUsers : allUsers.filter(u => !u.isMock);
-  const visibleMarket = allMarketItems;
-  const visibleProposals = isDemoMode ? allProposals : allProposals.filter(p => !p.isMock);
+  const updateTransaction = (updatedTransaction: Transaction) => {
+    setTransactions(prev => prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t));
+  };
 
-  // Correctly calculated stats object, ensuring totalMembers is always accurate.
-  const stats = {
-    totalMembers: visibleUsers.length,
-    activeGigs: visibleProposals.filter(p => p.status === 'Active').length,
-    totalTransactions: isDemoMode ? (12 + visibleUsers.filter(u => !u.isMock).length).toString() : '0'
+  const updateIpfsAsset = (updatedAsset: IPFSAsset) => {
+    setIpfsAssets(prev => prev.map(a => a.id === updatedAsset.id ? updatedAsset : a));
+  };
+
+  const updateTicket = (updatedTicket: SupportTicket) => {
+    setSupportTickets(prev => prev.map(t => t.id === updatedTicket.id ? updatedTicket : t));
+  };
+
+  const updateStaffMember = (updatedStaff: StaffMember) => {
+    setStaff(prev => prev.map(s => s.id === updatedStaff.id ? updatedStaff : s));
+  };
+
+  const updateModerationCase = (updatedCase: ModerationCase) => {
+    setModerationCases(prev => prev.map(c => c.id === updatedCase.id ? updatedCase : c));
   };
 
   return (
-    <DataContext.Provider value={{ 
-      users: visibleUsers, marketItems: visibleMarket, proposals: visibleProposals, 
-      leads: allLeads, addUser, updateUser, addMarketItem, addLead,
-      purgeMockData, isDemoMode, setDemoMode: setIsDemoMode, demoModeAvailable,
-      setDemoModeAvailable, stats, findUserByEmail, findUserByWallet
+    <DataContext.Provider value={{
+      currentUser, roster, messages, proposals, leaderboard, bookings, marketplaceItems, serviceListings, articles, leads, setLeads, forumThreads, transactions, ipfsAssets, supportTickets, subscriptionPlans, treasuryAssets, staff, moderationCases, loading,
+      login, logout, addUser, updateUser, addMessage, addProposal, addLead, addMarketItem, updateProposal, updateBooking, updateTransaction, updateIpfsAsset, updateTicket, updateStaffMember, updateModerationCase
     }}>
       {children}
     </DataContext.Provider>

@@ -9,7 +9,9 @@ import {
 import { useToast } from '../contexts/ToastContext';
 
 interface HomeProps {
-  onLogin: (role: UserRole, method: 'web2' | 'web3', credentials?: any) => void;
+//onLogin: (role: UserRole, method: 'web2' | 'web3', credentials?: any) => void;
+  onLogin: (role: UserRole, method: 'web2' | 'web3', loginMode: 'demo' | 'live', credentials?: any) => void;
+
   onViewNews: () => void;
   onJoin: () => void;
 }
@@ -72,8 +74,11 @@ const LinktreeIcon = ({ className }: { className?: string }) => (
 );
 
 const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
-  const { toast } = useToast();
-  const { users, stats, setDemoMode, isDemoMode, demoModeAvailable } = useData();
+  const { notify } = useToast();
+  const { roster: users, transactions, loading } = useData();
+  const stats = { totalMembers: (users || []).length, activeGigs: 0, totalTransactions: (transactions || []).length };
+ // const demoModeAvailable = true, isDemoMode = true, setDemoMode = () => {};const demoModeAvailable = true, isDemoMode = true, setDemoMode = (mode: 'demo' | 'live') => {};
+  const demoModeAvailable = true, isDemoMode = true, setDemoMode = (mode: 'demo' | 'live') => {};
   const [isPending, startTransition] = useTransition();
   const [selectedRoleForLogin, setSelectedRoleForLogin] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,30 +96,52 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
   const previewMembers = users.slice(0, 5);
 
 // Correction for the handleLoginClick function
+// Correction for the handleLoginClick function
   const handleLoginClick = (method: 'web2' | 'web3') => {
-    if (selectedRoleForLogin) {
-      if (loginMode === 'live' && method === 'web3') {
-        toast("Wallet login is disabled for Live Mode for security reasons.", "error");
+    if (!selectedRoleForLogin) return;
+
+    // --- Definitive Fix ---
+    // 1. Determine the correct user role for the login attempt.
+    const roleToLogin = (loginMode === 'live' && selectedRoleForLogin === UserRole.ADMIN)
+      ? UserRole.SYSTEM_ADMIN_LIVE
+      : selectedRoleForLogin;
+
+    // 2. Prepare credentials. For Web2 demo, find the mock user.
+    let credentials = { email, password };
+
+    if (loginMode === 'demo' && method === 'web2') {
+      const mockUser = users.find(u => u.role === roleToLogin && u.isMock);
+      if (mockUser) {
+        credentials = { email: mockUser.email || '', password: mockUser.password || '' };
+      } else {
+        notify(`Demo user for role "${roleToLogin}" not found.`, "error");
         return;
       }
-      if (loginMode === 'live' && method === 'web2' && (!email || !password)) {
-         toast("Please enter email and password for Live access.", "warning");
-         return;
-      }
-...
-
-
-      // Using startTransition to prevent suspension errors during view swaps
-      startTransition(() => {
-        setDemoMode(loginMode);
-        setTimeout(() => {
-          onLogin(selectedRoleForLogin, method, { email, password });
-          setIsLoading(false); 
-        }, 500);
-      });
     }
-  };
 
+    // 3. Validation for live mode.
+    // 3. Validation for live mode.
+    if (loginMode === 'live') {
+        if (method === 'web3' && (roleToLogin === UserRole.ADMIN || roleToLogin === UserRole.SYSTEM_ADMIN_LIVE)) {
+            notify("Wallet login is not available for Admin roles. Please use email/password.", "error");
+            return;
+        }
+        if (method === 'web2' && (!credentials.email || !credentials.password)) {
+            notify("Please enter email and password for Live access.", "warning");
+            return;
+        }
+    }
+
+    // 4. Execute Login
+    setIsLoading(true);
+    startTransition(() => {
+        // The isDemoMode state is managed by the App component based on loginMode
+        setTimeout(() => {
+            onLogin(roleToLogin, method, loginMode, credentials);
+            setIsLoading(false); 
+        }, 500);
+    });
+  };
 
   const LoginCard = ({ role, icon: Icon, desc }: { role: UserRole, icon: any, desc: string }) => (
     <button 
@@ -435,13 +462,13 @@ const Home: React.FC<HomeProps> = ({ onLogin, onViewNews, onJoin }) => {
                     </p>
                     <button 
                       onClick={() => handleLoginClick('web3')}
-                      disabled={isLoading}
-                      className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                      disabled={isLoading || selectedRoleForLogin === UserRole.ADMIN}
+                      className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:bg-gray-600 disabled:cursor-not-allowed"
                     >
-                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect Wallet'}
+                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (selectedRoleForLogin === UserRole.ADMIN ? 'Admin Wallet Disabled' : 'Connect Wallet')}
                     </button>
                  </div>
-
+                 
                  {/* Web2 Login */}
                  <div className="flex flex-col items-center p-6 bg-kala-800/50 rounded-xl border border-kala-700 hover:border-kala-secondary transition-colors group">
                     <div className="w-16 h-16 bg-kala-secondary/10 rounded-full flex items-center justify-center text-kala-secondary mb-4 group-hover:bg-kala-secondary group-hover:text-kala-900 transition-colors">

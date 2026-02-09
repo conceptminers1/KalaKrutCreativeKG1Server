@@ -1,48 +1,91 @@
 
 // src/services/knowledgeGraphService.ts
 
-import { MOCK_ROSTER } from '../mockData';
-import { UserRole, RosterMember } from '../types';
+import { 
+  MOCK_ROSTER,
+  MOCK_USERS_BY_ROLE,
+  MOCK_ARTIST_PROFILE
+} from '../mockData';
+import { UserRole, RosterMember, ArtistProfile } from '../types';
 
-// --- Explicit Data Definition for Reusability ---
+// --- DEFINITIVE DATA MERGING LOGIC ---
 
-// Define Node interface for clarity
+/**
+ * Creates a single, clean list of users by merging demo stubs with real profiles.
+ * This is the single source of truth for all user data in the app.
+ */
+const getMergedRoster = (): RosterMember[] => {
+  const profileMap = new Map<string, ArtistProfile>();
+
+  // 1. Add all base users from the main roster. These have the correct IDs for login.
+  MOCK_ROSTER.forEach(member => {
+    profileMap.set(member.id, {
+      ...MOCK_ARTIST_PROFILE,
+      ...member,
+    });
+  });
+
+  // 2. Merge the REAL user profiles. This overwrites the demo names/avatars with real ones.
+  Object.values(MOCK_USERS_BY_ROLE).forEach(realProfile => {
+    if (realProfile) {
+      const existingProfile = profileMap.get(realProfile.id) || {};
+      profileMap.set(realProfile.id, { ...existingProfile, ...realProfile });
+    }
+  });
+  
+  return Array.from(profileMap.values());
+};
+
+// This finalRoster is the definitive source of user data for the service.
+const finalRoster = getMergedRoster();
+
+// --- Corrected Graph and Node Definitions ---
+
 interface Node {
   id: string;
   label: string;
-  type: 'Artist' | 'Venue' | 'Sponsor' | 'DAO Governor' | 'Service' | 'Treasury';
+  type: string; // Keep as string to accommodate all roles
 }
 
-// Define Edge interface for clarity
 interface Edge {
   source: string;
   target: string;
   label: 'PLAYS_AT' | 'SPONSORED_BY' | 'USES_SERVICE' | 'OVERSEES' | 'CONNECTED_TO';
 }
 
-// Helper to find mock users safely
-const artist = MOCK_ROSTER.find(m => m.role === UserRole.ARTIST);
-const venue = MOCK_ROSTER.find(m => m.role === UserRole.VENUE);
-const sponsor = MOCK_ROSTER.find(m => m.role === UserRole.SPONSOR);
-const daoGovernor = MOCK_ROSTER.find(m => m.role === UserRole.DAO_GOVERNOR);
+// Helper to find the CORRECT user profiles from the merged list.
+const findUser = (role: UserRole) => finalRoster.find(m => m.role === role);
 
-// Exportable Nodes and Edges for database seeding or other uses
+// Define constants for all user types in the requested order, using the merged roster.
+const artist = findUser(UserRole.ARTIST);
+const venue = findUser(UserRole.VENUE);
+const serviceProvider = findUser(UserRole.SERVICE_PROVIDER);
+const organizer = findUser(UserRole.ORGANIZER);
+const sponsor = findUser(UserRole.SPONSOR);
+const reveller = findUser(UserRole.REVELLER);
+const admin = findUser(UserRole.ADMIN);
+const daoGovernor = findUser(UserRole.DAO_GOVERNOR);
+const daoMember = findUser(UserRole.DAO_MEMBER);
+
+// INITIAL_NODES now correctly uses the REAL names for labels for ALL users.
 export const INITIAL_NODES: Node[] = [
-  ...(artist ? [{ id: artist.id, label: artist.name, type: 'Artist' as const }] : []),
-  ...(venue ? [{ id: venue.id, label: venue.name, type: 'Venue' as const }] : []),
-  ...(sponsor ? [{ id: sponsor.id, label: sponsor.name, type: 'Sponsor' as const }] : []),
-  ...(daoGovernor ? [{ id: daoGovernor.id, label: daoGovernor.name, type: 'DAO Governor' as const }] : []),
-  { id: 'service_legal', label: 'Legal Eagle', type: 'Service' },
+  ...(artist ? [{ id: artist.id, label: artist.name, type: 'Artist' }] : []),
+  ...(venue ? [{ id: venue.id, label: venue.name, type: 'Venue' }] : []),
+  ...(serviceProvider ? [{ id: serviceProvider.id, label: serviceProvider.name, type: 'Service' }] : []),
+  ...(organizer ? [{ id: organizer.id, label: organizer.name, type: 'Organizer' }] : []),
+  ...(sponsor ? [{ id: sponsor.id, label: sponsor.name, type: 'Sponsor' }] : []),
+  ...(reveller ? [{ id: reveller.id, label: reveller.name, type: 'Reveller' }] : []),
+  ...(admin ? [{ id: admin.id, label: admin.name, type: 'Admin' }] : []),
+  ...(daoGovernor ? [{ id: daoGovernor.id, label: daoGovernor.name, type: 'DAO Governor' }] : []),
+  ...(daoMember ? [{ id: daoMember.id, label: daoMember.name, type: 'DAO Member' }] : []),
   { id: 'treasury_main', label: 'Main Treasury', type: 'Treasury' },
 ];
 
+// Edges remain correct as they use IDs, which are consistent.
 export const INITIAL_EDGES: Edge[] = [
-  // Artist connections
   ...(artist && venue ? [{ source: artist.id, target: venue.id, label: 'PLAYS_AT' as const }] : []),
   ...(artist && sponsor ? [{ source: artist.id, target: sponsor.id, label: 'SPONSORED_BY' as const }] : []),
-  ...(artist ? [{ source: artist.id, target: 'service_legal', label: 'USES_SERVICE' as const }] : []),
-
-  // DAO Governor connections
+  ...(artist && serviceProvider ? [{ source: artist.id, target: serviceProvider.id, label: 'USES_SERVICE' as const }] : []),
   ...(daoGovernor && artist ? [{ source: daoGovernor.id, target: artist.id, label: 'OVERSEES' as const }] : []),
   ...(daoGovernor && venue ? [{ source: daoGovernor.id, target: venue.id, label: 'OVERSEES' as const }] : []),
   ...(daoGovernor && sponsor ? [{ source: daoGovernor.id, target: sponsor.id, label: 'OVERSEES' as const }] : []),
@@ -50,7 +93,7 @@ export const INITIAL_EDGES: Edge[] = [
 ];
 
 
-// --- KnowledgeGraph Class Implementation ---
+// --- KnowledgeGraph Class Implementation (Preserved) ---
 
 class KnowledgeGraph {
   private connections: Map<string, string[]>;
@@ -63,9 +106,6 @@ class KnowledgeGraph {
     this.edges = [];
   }
 
-  /**
-   * Loads nodes and edges and builds the internal connection map.
-   */
   public loadData(nodes: Node[], edges: Edge[]): void {
     this.nodes = nodes;
     this.edges = edges;
@@ -92,30 +132,21 @@ class KnowledgeGraph {
     });
   }
 
-  /**
-   * Retrieves all connections for a given entity ID.
-   */
   public getConnections(id: string): string[] {
     return this.connections.get(id) || [];
   }
 
   /**
-   * Retrieves the full community roster and enriches it with dynamic properties.
+   * Retrieves the full community roster, now correctly named and de-duplicated at the source.
    */
   public getRosterMembers(): (RosterMember & { protected?: boolean })[] {
-    return MOCK_ROSTER.map(member => ({
+    return finalRoster.map(member => ({
       ...member,
-      // Simulate a protected user for guest view demonstration
       protected: member.role === UserRole.SPONSOR
     }));
   }
 
-  /**
-   * Simulates running a complex query against the knowledge graph to find leads.
-   * In a real system, this would involve graph traversal and pattern matching.
-   */
   public findLeads(query: string): any[] {
-    // Mock implementation based on query keywords
     if (query.includes('releases') && query.includes('no upcoming events')) {
       return [
         { id: 'ai-l1', name: 'DJ Quantum', reason: 'Has 3 new tracks, zero upcoming gigs.' },
@@ -126,7 +157,7 @@ class KnowledgeGraph {
   }
 }
 
-// --- Singleton Instantiation ---
+// --- Singleton Instantiation (Preserved) ---
 
 const knowledgeGraph = new KnowledgeGraph();
 knowledgeGraph.loadData(INITIAL_NODES, INITIAL_EDGES);

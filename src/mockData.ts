@@ -39,7 +39,7 @@ export const MOCK_ARTIST_PROFILE: ArtistProfile = {
   role: UserRole.ARTIST,
   xp: 450,
   level: 2,
-  password: 'password123', // Default mock password
+  password: 'live', // Default mock password
   coverImage: 'https://picsum.photos/seed/gig1/1200/400',
   bio: "Electronic synthesis meets classical composition. Based in Brooklyn, Luna Eclipse has been redefining the ambient techno scene since 2021.\n\nMy sets are an immersive journey through sound and light, perfect for intimate venues and large-scale festivals alike.",
   location: 'Brooklyn, NY',
@@ -60,7 +60,7 @@ export const MOCK_ARTIST_PROFILE: ArtistProfile = {
   equityOpportunities: [
     {
       id: 'eq-1',
-      title: 'Project: "Neon Horizons" Album',
+      title: 'Project: \"Neon Horizons\" Album',
       type: 'Project Equity',
       description: 'Invest in the production and marketing of the upcoming sophomore album.',
       totalValuation: 5000,
@@ -134,116 +134,166 @@ export const MOCK_USERS_BY_ROLE: Record<UserRole, ArtistProfile> = {
   [UserRole.VENUE]: { ...MOCK_ARTIST_PROFILE, id: 'u_venue', name: 'The Warehouse', role: UserRole.VENUE, avatar: 'https://picsum.photos/seed/venue1/200', location: 'London, UK' },
   [UserRole.SPONSOR]: { ...MOCK_ARTIST_PROFILE, id: 'u_sponsor', name: 'RedBull Music', role: UserRole.SPONSOR, avatar: 'https://picsum.photos/seed/sponsor1/200', location: 'Global' },
   [UserRole.REVELLER]: { ...MOCK_ARTIST_PROFILE, id: 'u_reveller', name: 'Alex Fan', role: UserRole.REVELLER, avatar: 'https://picsum.photos/seed/fan1/200', level: 2, xp: 150 },
-  [UserRole.ADMIN]: { ...MOCK_ARTIST_PROFILE, id: 'u_admin', name: 'System Admin', role: UserRole.ADMIN, avatar: 'https://picsum.photos/seed/admin/200', level: 99 },
-  [UserRole.SYSTEM_ADMIN_LIVE]: { ...MOCK_ARTIST_PROFILE, id: 'u_sys_admin_live', name: 'Owner', role: UserRole.SYSTEM_ADMIN_LIVE, avatar: 'https://picsum.photos/seed/sysadmin/200', level: 100, password: 'live' },
+  [UserRole.ADMIN]: { ...MOCK_ARTIST_PROFILE, id: 'u_admin', name: 'System Admin (Demo)', role: UserRole.ADMIN, avatar: 'https://picsum.photos/seed/admin/200', level: 99 },
+  [UserRole.SYSTEM_ADMIN_LIVE]: { ...MOCK_ARTIST_PROFILE, id: 'u_sys_admin_live', name: 'Kala Owner', role: UserRole.SYSTEM_ADMIN_LIVE, avatar: 'https://picsum.photos/seed/sysadmin/200', level: 100, password: 'live' },
   [UserRole.ORGANIZER]: { ...MOCK_ARTIST_PROFILE, id: 'u_org', name: 'Festival Co.', role: UserRole.ORGANIZER, avatar: 'https://picsum.photos/seed/org/200' },
   [UserRole.DAO_GOVERNOR]: MOCK_DAO_GOVERNOR_PROFILE,
   [UserRole.DAO_MEMBER]: MOCK_DAO_MEMBER_PROFILE,
   [UserRole.SERVICE_PROVIDER]: { ...MOCK_ARTIST_PROFILE, id: 'u_service', name: 'Legal Eagle', role: UserRole.SERVICE_PROVIDER, avatar: 'https://picsum.photos/seed/legal/200' }
 };
 
+
 export const MOCK_ROSTER: RosterMember[] = [
+  // --- LIVE USERS (for Web2 & Web3 login) ---
+  {
+    id: 'u_sys_admin_live_bhoomin',
+    name: 'Bhoomin Pandya',
+    role: UserRole.SYSTEM_ADMIN_LIVE,
+    email: 'bhoominpandya@gmail.com',
+    password: 'live',
+    isMock: false,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.SYSTEM_ADMIN_LIVE].avatar,
+    location: 'Decentralized',
+  },
+  {
+    id: 'u_sys_admin_live',
+    name: 'Kala Owner',
+    role: UserRole.SYSTEM_ADMIN_LIVE,
+    email: 'admin@kalakrut.io',
+    password: 'live',
+    isMock: false,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.SYSTEM_ADMIN_LIVE].avatar,
+    location: 'Decentralized',
+  },
   {
     id: 'u_artist',
     name: 'Luna Eclipse',
     role: UserRole.ARTIST,
-    avatar: 'https://picsum.photos/seed/u1/200',
+    email: 'luna@example.com',
+    password: 'live',
+    walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    isMock: false,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.ARTIST].avatar,
     location: 'Brooklyn, NY',
-    verified: true,
-    assets: {
-      ips: ['2'],
-      events: ['1'],
-      services: ['2'],
-      products: ['5'],
-      nfts: ['3'],
-      contents: [],
-      equipment: [],
-      instruments: [],
-      tickets: []
-    },
-    rating: 4.9,
-    subscriberOnly: {
-      email: 'booking@lunaeclipse.com',
-      phone: '+1 555 019 2834',
-      agentContact: 'Creative Artists Agency'
-    }
   },
   {
     id: 'r2',
     name: 'The Warehouse',
     role: UserRole.VENUE,
-    avatar: 'https://picsum.photos/seed/venue1/200',
+    email: 'warehouse@example.com',
+    password: 'live',
+    walletAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    isMock: false,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.VENUE].avatar,
     location: 'London, UK',
-    verified: true,
-     assets: {
-      ips: ['0'],
-      events: ['1'],
-      services: ['2'],
-      products: ['0'],
-      nfts: ['10'],
-      contents: [],
-      equipment: [],
-      instruments: [],
-      tickets: []
-    },
-    rating: 4.8,
-    subscriberOnly: {
-      email: 'events@thewarehouse.ldn',
-      phone: '+44 20 7946 0123',
-      agentContact: 'Internal Booking Team'
-    }
+  },
+
+  // --- DEMO USERS (for "Click-to-enter" functionality) ---
+  {
+    id: 'demo_artist',
+    name: 'Demo Artist',
+    role: UserRole.ARTIST,
+    email: 'artist@demo.com',
+    password: 'demo',
+    walletAddress: '0x1111111111111111111111111111111111111111',
+    isMock: true, 
+    onboardingComplete: true,
+    avatar: 'https://picsum.photos/seed/demoartist/200'
   },
   {
-    id: 'r3',
-    name: 'TechStart Inc.',
-    role: UserRole.SPONSOR,
-    avatar: 'https://picsum.photos/seed/sponsor1/200',
-    location: 'San Francisco, CA',
-    verified: true,
-     assets: {
-      ips: ['0'],
-      events: ['0'],
-      services: ['2'],
-      products: ['0'],
-      nfts: ['0'],
-      contents: [],
-      equipment: [],
-      instruments: [],
-      tickets: []
-    },
-    rating: 5.0,
-    subscriberOnly: {
-      email: 'partnerships@techstart.io',
-      phone: '+1 415 555 0100',
-      agentContact: 'Global Brand Director'
-    }
+    id: 'demo_venue',
+    name: 'Demo Venue',
+    role: UserRole.VENUE,
+    email: 'venue@demo.com',
+    password: 'demo',
+    walletAddress: '0x2222222222222222222222222222222222222222',
+    isMock: true, 
+    onboardingComplete: true,
+    avatar: 'https://picsum.photos/seed/demovenue/200'
   },
     {
-    id: 'u_dao_gov',
+    id: 'demo_sponsor',
+    name: 'Demo Sponsor',
+    role: UserRole.SPONSOR,
+    email: 'sponsor@demo.com',
+    password: 'demo',
+    walletAddress: '0x3333333333333333333333333333333333333333',
+    isMock: true, 
+    onboardingComplete: true,
+    avatar: 'https://picsum.photos/seed/demosponsor/200'
+  },
+  {
+    id: 'demo_reveller',
+    name: 'Demo Reveller',
+    role: UserRole.REVELLER,
+    email: 'reveller@demo.com',
+    password: 'demo',
+    walletAddress: '0x4444444444444444444444444444444444444444',
+    isMock: true, 
+    onboardingComplete: true,
+    avatar: 'https://picsum.photos/seed/demoreveller/200'
+  },
+  {
+    id: 'demo_organizer',
+    name: 'Demo Organizer',
+    role: UserRole.ORGANIZER,
+    email: 'organizer@demo.com',
+    password: 'demo',
+    walletAddress: '0x5555555555555555555555555555555555555555',
+    isMock: true, 
+    onboardingComplete: true,
+    avatar: 'https://picsum.photos/seed/demoorganizer/200'
+  },
+  {
+    id: 'demo_service_provider',
+    name: 'Demo Service Provider',
+    role: UserRole.SERVICE_PROVIDER,
+    email: 'service@demo.com',
+    password: 'demo',
+    walletAddress: '0x6666666666666666666666666666666666666666',
+    isMock: true, 
+    onboardingComplete: true,
+    avatar: 'https://picsum.photos/seed/demoservice/200'
+  },
+  {
+    id: 'demo_dao_governor',
     name: 'Governor Alice',
     role: UserRole.DAO_GOVERNOR,
-    avatar: 'https://picsum.photos/seed/dao/200',
-    location: 'Decentralized',
-    verified: true,
-     assets: {
-      ips: ['0'],
-      events: ['0'],
-      services: ['2'],
-      products: ['0'],
-      nfts: ['0'],
-      contents: [],
-      equipment: [],
-      instruments: [],
-      tickets: []
-    },
-    rating: 5.0,
-    subscriberOnly: {
-      email: 'governor.alice@kalakrut.io',
-      phone: '',
-      agentContact: ''
-    }
+    email: 'governor@demo.com',
+    password: 'demo',
+    walletAddress: '0x7777777777777777777777777777777777777777',
+    isMock: true,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.DAO_GOVERNOR].avatar
+  },
+  {
+    id: 'demo_dao_member',
+    name: 'Demo DAO Member',
+    role: UserRole.DAO_MEMBER,
+    email: 'member@demo.com',
+    password: 'demo',
+    walletAddress: '0x8888888888888888888888888888888888888888',
+    isMock: true,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.DAO_MEMBER].avatar
+  },
+  {
+    id: 'demo_admin',
+    name: 'Demo Admin',
+    role: UserRole.ADMIN,
+    email: 'admin@demo.com',
+    password: 'demo',
+    walletAddress: '0x9999999999999999999999999999999999999999',
+    isMock: true,
+    onboardingComplete: true,
+    avatar: MOCK_USERS_BY_ROLE[UserRole.ADMIN].avatar
   }
 ];
+
 
 export const MOCK_LEADERBOARD: LeaderboardEntry[] = [
   { rank: 1, user: { ...MOCK_USERS_BY_ROLE[UserRole.ARTIST], name: 'Luna Eclipse', xp: 450, level: 2 }, badges: ['Early Adopter'], change: 0 },
@@ -277,7 +327,7 @@ export const MOCK_MARKETPLACE_ITEMS: MarketplaceItem[] = [
     image: 'https://picsum.photos/seed/guitar/400/400',
     seller: { name: 'Neon Pulse', avatar: 'https://picsum.photos/seed/u2/50', verified: true },
     isAuction: false,
-    description: 'Custom painted Cyberpunk 2077 themed electric guitar. Modified pickups for extra crunch. Used on stage during the "Neon Nights" tour.',
+    description: 'Custom painted Cyberpunk 2077 themed electric guitar. Modified pickups for extra crunch. Used on stage during the \"Neon Nights\" tour.',
     condition: 'Like New'
   },
   {

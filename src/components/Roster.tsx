@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { knowledgeGraph } from '../services/knowledgeGraphService';
 import PaymentGateway from '../components/PaymentGateway';
 import { 
-  Lock, Unlock, ShieldCheck, MapPin, Star, Briefcase, Music, Calendar, Headphones, Ticket, Layers, Search, ShieldAlert
+  Lock, Unlock, ShieldCheck, MapPin, Star, Briefcase, Music, Calendar, Headphones, Ticket, Layers, Search, ShieldAlert, Loader2
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { RosterMember } from '../types';
 
 interface RosterProps {
   onNavigate: (view: string) => void;
@@ -18,13 +19,50 @@ const Roster: React.FC<RosterProps> = ({ onNavigate, onViewProfile }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   
-  // Load data from Knowledge Graph
-  const rosterMembers = knowledgeGraph.getRosterMembers();
+  // This now contains ALL users, including demo users needed for login.
+  const allMembers = knowledgeGraph.getRosterMembers();
 
-  const filteredRoster = rosterMembers.filter(m => 
+  // --- STEP 2 of 2: De-duplicate the UI without breaking login ---
+  // The data source now correctly contains all users. This logic filters the list
+  // for display only, ensuring a clean UI without removing data needed for auth.
+  const getFilteredRosterForDisplay = (members: RosterMember[]) => {
+    if (!Array.isArray(members)) return [];
+
+    // 1. Find all roles that have a REAL user assigned.
+    const realUserRoles = new Set(
+      members
+        .filter(member => !member.name.startsWith('Demo '))
+        .map(member => member.role)
+    );
+
+    // 2. Filter the list for display.
+    return members.filter(member => {
+      // If the member is a demo user...
+      if (member.name.startsWith('Demo ')) {
+        // ...hide them if a real user already exists for that role.
+        return !realUserRoles.has(member.role);
+      }
+      // Otherwise, always show the real user.
+      return true;
+    });
+  };
+
+  const cleanRoster = getFilteredRosterForDisplay(allMembers);
+
+  const filteredRoster = cleanRoster.filter(m => 
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     m.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  // Guard clause for loading state, as established previously.
+  if (!Array.isArray(allMembers)) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-kala-secondary animate-spin" />
+        <p className="ml-4 text-white">Loading Roster Data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -75,7 +113,7 @@ const Roster: React.FC<RosterProps> = ({ onNavigate, onViewProfile }) => {
       {/* Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {filteredRoster.map((member) => {
-          const isProtected = member.protected;
+          const isProtected = (member as any).protected;
 
           return (
             <div key={member.id} className={`relative bg-kala-800/50 border rounded-xl overflow-hidden group transition-all ${isProtected ? 'border-red-900/50' : 'border-kala-700 hover:border-kala-500'}`}>
@@ -132,22 +170,26 @@ const Roster: React.FC<RosterProps> = ({ onNavigate, onViewProfile }) => {
                   <div className="px-6 pb-4">
                     <h4 className="text-xs font-bold text-kala-500 uppercase mb-3">Verifiable Assets from Knowledge Graph</h4>
                     <div className="flex flex-wrap gap-2">
-                       {member.assets.ips > 0 && (
-                         <Badge icon={Layers} label={`${member.assets.ips} IPs`} color="purple" />
+                       {member.assets?.ips?.length > 0 && (
+                         <Badge icon={Layers} label={`${member.assets.ips.length} IPs`} color="purple" />
                        )}
-                       {member.assets.events > 0 && (
-                         <Badge icon={Calendar} label={`${member.assets.events} Events`} color="pink" />
+                       {member.assets?.events?.length > 0 && (
+                         <Badge icon={Calendar} label={`${member.assets.events.length} Events`} color="pink" />
                        )}
-                       {member.assets.services > 0 && (
-                         <Badge icon={Briefcase} label={`${member.assets.services} Services`} color="blue" />
+                       {member.assets?.services?.length > 0 && (
+                         <Badge icon={Briefcase} label={`${member.assets.services.length} Services`} color="blue" />
                        )}
-                       {member.assets.productions > 0 && (
-                         <Badge icon={Headphones} label={`${member.assets.productions} Productions`} color="orange" />
+                       {member.assets?.products?.length > 0 && (
+                         <Badge icon={Headphones} label={`${member.assets.products.length} Products`} color="orange" />
                        )}
-                       {member.assets.nfts > 0 && (
-                         <Badge icon={Ticket} label={`${member.assets.nfts} NFTs`} color="green" />
+                       {member.assets?.tickets?.length > 0 && (
+                         <Badge icon={Ticket} label={`${member.assets.tickets.length} Tickets`} color="green" />
                        )}
-                       {member.assets.ips === 0 && member.assets.events === 0 && member.assets.services === 0 && member.assets.productions === 0 && (
+                       {(member.assets?.ips?.length || 0) === 0 &&
+                        (member.assets?.events?.length || 0) === 0 &&
+                        (member.assets?.services?.length || 0) === 0 &&
+                        (member.assets?.products?.length || 0) === 0 &&
+                        (member.assets?.tickets?.length || 0) === 0 && (
                           <span className="text-xs text-kala-600 italic">No public assets linked in the Knowledge Graph.</span>
                        )}
                     </div>
@@ -158,7 +200,7 @@ const Roster: React.FC<RosterProps> = ({ onNavigate, onViewProfile }) => {
                     <div className={`relative ${(!isSubscribed || isProtected) ? 'blur-sm select-none' : ''}`}>
                         {isSubscribed && !isProtected ? (
                           <div className="text-xs text-kala-300">
-                            {member.subscriberOnly.email}
+                            {member.subscriberOnly?.email}
                           </div>
                         ) : (
                           <div className="text-xs text-kala-400">

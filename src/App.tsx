@@ -14,7 +14,8 @@ import { WalletProvider, useWallet } from './contexts/WalletContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import { DataProvider, useData } from './contexts/DataContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { UserRole, ModerationCase, ArtistProfile as IArtistProfile, Lead, Artist, RosterMember } from './types';
+import { UserRole, ModerationCase, ArtistProfile as IArtistProfile, Lead, RosterMember } from './types.ts';
+const ArtistProfileGate = React.lazy(() => import('./components/ArtistProfileGate'));
 import { Wallet, Bell, Search, LogOut, Lock, Loader2, UploadCloud, MessageSquare, CreditCard, CheckCircle, ShieldAlert, AlertTriangle, X, RefreshCw, ArrowLeft } from 'lucide-react';
 import { MOCK_LEADERBOARD, MOCK_ARTIST_PROFILE, MOCK_ROSTER, MOCK_USERS_BY_ROLE, MOCK_MODERATION_CASES } from './mockData';
 import Dashboard from './components/Dashboard';
@@ -41,14 +42,14 @@ const MembershipPlans = React.lazy(() => import('./components/MembershipPlans'))
 const MyCircle = React.lazy(() => import('./components/MyCircle'));
 
 const PageLoader = () => (
-  <div className="h-[60vh] w-full flex flex-col items-center justify-center text-kala-400">
+  <div className="h-screen w-full flex flex-col items-center justify-center text-kala-400 bg-kala-900">
     <div className="relative">
        <div className="w-16 h-16 border-4 border-kala-800 border-t-kala-secondary rounded-full animate-spin"></div>
        <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-2 h-2 bg-kala-secondary rounded-full"></div>
        </div>
     </div>
-    <p className="text-sm font-bold mt-6 tracking-widest uppercase animate-pulse">Loading Module...</p>
+    <p className="text-sm font-bold mt-6 tracking-widest uppercase animate-pulse">Loading Kala Network...</p>
   </div>
 );
 
@@ -107,7 +108,7 @@ const BlockedScreen: React.FC<{ onAppeal: (reason: string) => void }> = ({ onApp
 const AppContent: React.FC = () => {
   const [isPending, startTransition] = useTransition();
   const [currentView, setCurrentView] = useState('home');
-  const [currentUser, setCurrentUser] = useState<RosterMember | null>(null);
+  const [currentUser, setCurrentUser] = useState<IArtistProfile | null>(null);
   const [isAppLoggedIn, setIsAppLoggedIn] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -117,14 +118,16 @@ const AppContent: React.FC = () => {
   const [showTokenExchange, setShowTokenExchange] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProfile, setSelectedProfile] = useState<RosterMember | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<IArtistProfile | null>(null);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
   const [moderationCases, setModerationCases] = useState<ModerationCase[]>(MOCK_MODERATION_CASES);
   const [leads, setLeads] = useState<Lead[]>([]);
+  
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const { isConnected: isWalletConnected, connect: connectWallet, disconnect: disconnectWallet, walletAddress, balances } = useWallet();
   const { notify } = useToast();
-  const { addUser, isDemoMode, findUserByEmail, findUserByWallet, updateUser, users } = useData();
+  const { addUser, updateUser, roster, loading } = useData();
 
   const navigate = (view: string) => {
     startTransition(() => {
@@ -132,16 +135,23 @@ const AppContent: React.FC = () => {
     });
   };
 
-  const addLead = (artist: Artist): boolean => {
+  const addLead = (artist: { id: string; name: string; bio: string }): boolean => {
     let wasAdded = false;
     setLeads(prev => {
-      if (prev.some(l => l.id === artist.id)) {
-        wasAdded = false;
-        return prev;
-      }
-      const newLead: Lead = { ...artist, status: 'New' };
-      wasAdded = true;
-      return [newLead, ...prev];
+        if (prev.some(l => l.id === artist.id)) {
+            wasAdded = false;
+            return prev;
+        }
+        const newLead: Lead = {
+            id: artist.id,
+            email: `${artist.name.replace(/\s+/g, '.').toLowerCase()}@example-lead.com`,
+            source: 'MusicBrainz Search',
+            status: 'New',
+            generatedDate: new Date().toISOString(),
+            notes: artist.bio || 'No bio available.',
+        };
+        wasAdded = true;
+        return [newLead, ...prev];
     });
     return wasAdded;
   };
@@ -193,7 +203,7 @@ const AppContent: React.FC = () => {
   const handleWalletConnect = async () => {
     setIsConnecting(true);
     try {
-      const newAddress = await connectWallet();
+      await connectWallet();
       notify("Wallet connected successfully!", "success");
     } catch (error) {
       notify("Wallet connection failed or was cancelled.", "error");
@@ -201,54 +211,91 @@ const AppContent: React.FC = () => {
     setIsConnecting(false);
   };
 
-  const handleLogin = async (role: UserRole, method: 'web2' | 'web3', credentials?: any) => {
+  const handleLogin = async (role: UserRole, method: 'web2' | 'web3', loginMode: 'demo' | 'live', credentials?: any) => {
+    console.log('--- handleLogin called ---');
+    console.log('Attempting login with:', { role, method, loginMode });
+
     setIsLoggingIn(true);
+    setIsDemoMode(loginMode === 'demo');
+
     let foundUser: RosterMember | undefined;
+  
+    try {
+      const isMock = loginMode === 'demo';
+      console.log('Searching in roster:', roster);
 
-    if (isDemoMode) {
-       foundUser = users.find(u => u.role === role && u.isMock);
-       if (method === 'web3' && !isWalletConnected) await connectWallet();
-    } else {
-       if (method === 'web3') {
-         if (!isWalletConnected) await connectWallet();
-         foundUser = users.find(u => u.walletAddress === walletAddress && !u.isMock);
-       } else {
-         foundUser = users.find(u => u.email === credentials.email && u.password === credentials.password && !u.isMock);
-       }
-    }
+      if (method === 'web3') {
+        const newAddress = await connectWallet();
+        console.log('Web3 login: wallet address connected:', newAddress);
+        if (newAddress) {
+          foundUser = roster.find(u => u.walletAddress?.toLowerCase() === newAddress.toLowerCase() && u.isMock === isMock && u.role === role);
+        }
+      } else { // Web2 (email/password)
+        console.log('Web2 login: credentials:', credentials);
+        if (loginMode === 'live' && role === UserRole.ADMIN) {
+            foundUser = roster.find(u => 
+                u.email === credentials.email && 
+                u.password === credentials.password && 
+                u.role === UserRole.SYSTEM_ADMIN_LIVE &&
+                !u.isMock
+            );
+        } else {
+            foundUser = roster.find(u => 
+                u.email === credentials.email && 
+                u.password === credentials.password && 
+                u.isMock === isMock && 
+                u.role === role
+            );
+        }
+      }
+  
+      console.log('User search result:', foundUser);
 
-    if (!foundUser) {
-      notify("Login failed. Invalid credentials or user not found.", "error");
+      if (!foundUser) {
+        console.error('Login failed: No matching user found in roster.');
+        notify("Login failed. Invalid credentials, role, or mode (Live/Demo) mismatch.", "error");
+        if (method === 'web3') {
+          disconnectWallet();
+        }
+        setIsLoggingIn(false);
+        return;
+      }
+  
+      const userRoleDefaults = MOCK_USERS_BY_ROLE[foundUser.role] || MOCK_USERS_BY_ROLE[UserRole.REVELLER];
+      const fullProfile: IArtistProfile = {
+        ...foundUser,
+        ...userRoleDefaults,
+        id: foundUser.id,
+        email: foundUser.email,
+        isMock: foundUser.isMock,
+      };
+
+      console.log('Login successful! User profile constructed:', fullProfile);
+
+      startTransition(() => {
+        setCurrentUser(fullProfile);
+        setSelectedProfile(fullProfile);
+        setIsAppLoggedIn(true);
+        setIsUserBlocked(false);
+        setCurrentView('dashboard');
+      });
+  
+      if (fullProfile.role === UserRole.ARTIST) {
+        setIsProfileComplete(fullProfile.onboardingComplete || false);
+      }
+  
+      notify(`Welcome back, ${fullProfile.name}!`, "info");
+  
+    } catch (error) {
+      console.error("An exception occurred during login:", error);
+      notify("An unexpected error occurred during login. Please try again.", "error");
+      if (method === 'web3') {
+        disconnectWallet();
+      }
+    } finally {
       setIsLoggingIn(false);
-      return;
+      console.log('--- handleLogin finished ---');
     }
-    
-    // This ensures we have a clean user object without mock data bleeding through
-    const targetUser: RosterMember = {
-      id: foundUser.id,
-      name: foundUser.name,
-      role: foundUser.role,
-      avatar: foundUser.avatar,
-      location: foundUser.location,
-      verified: foundUser.verified,
-      onboardingComplete: foundUser.onboardingComplete,
-      walletAddress: foundUser.walletAddress,
-      assets: foundUser.assets,
-      rating: foundUser.rating,
-      subscriberOnly: foundUser.subscriberOnly,
-    };
-
-    startTransition(() => {
-      setCurrentUser(targetUser);
-      setSelectedProfile(targetUser);
-      setIsAppLoggedIn(true);
-      setIsUserBlocked(false);
-      setCurrentView('dashboard');
-    });
-
-    if (targetUser.role === UserRole.ARTIST) { setIsProfileComplete(true); }
-    notify(`Welcome back, ${targetUser.name}!`, "info");
-    setIsLoggingIn(false);
   };
 
   const handleLogout = () => {
@@ -258,13 +305,14 @@ const AppContent: React.FC = () => {
     disconnectWallet();
     navigate('home');
     setIsUserBlocked(false);
+    setIsDemoMode(false); 
     notify("Logged out successfully.", "info");
   };
 
   const handleViewProfile = (id: string) => {
-    const member = users.find(m => m.id === id);
+    const member = roster.find(m => m.id === id);
     if (member) {
-      setSelectedProfile(member);
+      setSelectedProfile(member as IArtistProfile);
       navigate('profile');
     }
   };
@@ -273,8 +321,8 @@ const AppContent: React.FC = () => {
     if (!currentUser) return;
     const updatedUser = { ...currentUser, ...updates };
     setCurrentUser(updatedUser);
-    updateUser(updatedUser as RosterMember);
-    if (selectedProfile?.id === currentUser.id) { setSelectedProfile(updatedUser as RosterMember); }
+    updateUser(updatedUser as IArtistProfile);
+    if (selectedProfile?.id === currentUser.id) { setSelectedProfile(updatedUser as IArtistProfile); }
     notify('Profile updated successfully', 'success');
   };
   
@@ -337,25 +385,19 @@ const AppContent: React.FC = () => {
       return <PageLoader />;
     }
     
-    // --- Centralized Permission Logic ---
-    const isLiveAdmin = currentUser.role === UserRole.SYSTEM_ADMIN_LIVE;
-    const isDemoAdmin = currentUser.role === UserRole.ADMIN;
+    const isLiveAdmin = currentUser.role === UserRole.SYSTEM_ADMIN_LIVE && !isDemoMode;
+    const isDemoAdmin = currentUser.role === UserRole.ADMIN && isDemoMode;
     const isDaoGovernor = currentUser.role === UserRole.DAO_GOVERNOR;
     const isDaoMember = currentUser.role === UserRole.DAO_MEMBER;
 
     const permissions = {
-      // System Wide
       canAccessSystemConfig: isLiveAdmin,
-      // DAO Governance
       canGovernDao: isLiveAdmin || isDemoAdmin || isDaoGovernor,
       canVetoProposals: isLiveAdmin,
       canRatifyProposals: isLiveAdmin || isDemoAdmin || isDaoGovernor,
-      // Contracts & Agreements
       canManageAllContracts: isLiveAdmin || isDemoAdmin || isDaoGovernor,
       canOnlyManageOwnContracts: isDaoMember,
-      // Treasury
       canAccessTreasury: isLiveAdmin || isDemoAdmin || isDaoGovernor,
-      // HR
       canAccessHr: isLiveAdmin || isDemoAdmin,
     };
 
@@ -371,7 +413,6 @@ const AppContent: React.FC = () => {
         <Suspense fallback={<PageLoader />}>
           {(() => {
             switch (currentView) {
-              // --- Open Access Pages ---
               case 'search_results': return <SearchResults query={searchQuery} onNavigate={navigate} />;
               case 'sitemap': return <Sitemap onNavigate={navigate} />;
               case 'whitepaper': return <WhitePaper />;
@@ -385,10 +426,9 @@ const AppContent: React.FC = () => {
               case 'membership': return <MembershipPlans currentUser={currentUser} />;
               case 'my_circle': return <MyCircle currentUser={currentUser} />;
               case 'leads_and_ai': return <LeadsAndAi leads={leads} addLead={addLead} />;
-              case 'profile': return selectedProfile && <ArtistProfile artist={selectedProfile} onChat={() => handleOpenChat(selectedProfile)} onBook={() => navigate('booking')} isOwnProfile={selectedProfile.id === currentUser.id} isBlocked={isUserBlocked} onUpdateProfile={handleUpdateUserProfile} />;
+              case 'profile': return selectedProfile && <ArtistProfileGate artist={selectedProfile} onChat={() => handleOpenChat(selectedProfile)} onBook={() => navigate('booking')} isOwnProfile={selectedProfile.id === currentUser.id} isBlocked={isUserBlocked} onUpdateProfile={handleUpdateUserProfile} />;
               case 'announcements_internal': return <Announcements onBack={() => navigate('dashboard')} />;
               
-              // --- Permission Gated Pages ---
               case 'governance': 
                 return permissions.canGovernDao || permissions.canOnlyManageOwnContracts ? 
                   <DaoGovernance 
@@ -401,7 +441,7 @@ const AppContent: React.FC = () => {
                 return permissions.canManageAllContracts || permissions.canOnlyManageOwnContracts ? 
                   <AdminContracts 
                     onBlockUser={handleBlockUser} 
-                    onChat={(name, avatar) => handleOpenChat({ id: 'chat-user', name, avatar, role: UserRole.CLIENT } as RosterMember)} 
+                    onChat={(name, avatar) => handleOpenChat({ id: 'chat-user', name, avatar, role: UserRole.REVELLER } as RosterMember)}
                     permissions={permissions} 
                     currentUser={currentUser}
                   /> : <AccessDenied />;
@@ -437,6 +477,10 @@ const AppContent: React.FC = () => {
     );
   };
   
+  if (loading) {
+    return <PageLoader />;
+  }
+
   if (isUserBlocked) { return <BlockedScreen onAppeal={handleAppeal} />; }
   if (!isAppLoggedIn) {
     if (currentView === 'announcements_public') { return <Announcements onBack={() => navigate('home')} />; }
@@ -463,7 +507,14 @@ const AppContent: React.FC = () => {
       currentUser={currentUser}
     >
        {showChat && chatRecipient && (
-         <ChatOverlay recipientName={chatRecipient.name} recipientAvatar={chatRecipient.avatar} onClose={() => setShowChat(false)} onNavigateToBooking={() => { setShowChat(false); navigate('booking'); }} onBlockUser={handleBlockUser} />
+         <ChatOverlay 
+           recipientName={chatRecipient.name} 
+           recipientAvatar={chatRecipient.avatar} 
+           recipientEmail={chatRecipient.email} // Pass the email here
+           onClose={() => setShowChat(false)} 
+           onNavigateToBooking={() => { setShowChat(false); navigate('booking'); }} 
+           onBlockUser={handleBlockUser} 
+         />
        )}
        {showTokenExchange && <TokenExchange onClose={() => setShowTokenExchange(false)} />}
        {currentView !== 'dashboard' && <UserWidget />}

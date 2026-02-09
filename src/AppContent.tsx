@@ -16,7 +16,7 @@ import { useData } from './contexts/DataContext';
 import { useAuth } from './contexts/AuthContext';
 import PageLoader from './components/PageLoader';
 import BlockedScreen from './components/BlockedScreen';
-import { UserRole, ModerationCase, ArtistProfile as IArtistProfile, Lead, Artist } from './types';
+import { UserRole, ModerationCase, ArtistProfile as IArtistProfile, Lead, Artist } from './types.ts';
 import { Bell, Search, LogOut, Loader2, RefreshCw, ArrowLeft } from 'lucide-react';
 import { MOCK_ARTIST_PROFILE, MOCK_ROSTER } from './mockData';
 import Dashboard from './components/Dashboard';

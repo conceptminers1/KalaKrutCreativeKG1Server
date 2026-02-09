@@ -56,7 +56,9 @@ const Layout: React.FC<LayoutProps> = ({
 
     return {
       canAccessSystemConfig: isLiveAdmin,
-      canGovernDao: isLiveAdmin || isDemoAdmin || isDaoGovernor,
+      // --- DEFINITIVE FIX --- 
+      // The DAO Member should be able to see the DAO Governance link in the sidebar.
+      canGovernDao: isLiveAdmin || isDemoAdmin || isDaoGovernor || isDaoMember,
       canAccessTreasury: isLiveAdmin || isDemoAdmin || isDaoGovernor,
       canAccessHr: isLiveAdmin || isDemoAdmin,
       canAccessAnalytics: isLiveAdmin || isDemoAdmin,
@@ -141,7 +143,7 @@ const Layout: React.FC<LayoutProps> = ({
               {permissions.canGovernDao && <NavItem id="governance" icon={Vote} label="DAO Governance" {...navProps} />}
               {permissions.canViewContracts && <NavItem id="contracts" icon={FileSignature} label="Contracts & Agreements" {...navProps} />}
               {permissions.canAccessTreasury && <NavItem id="treasury" icon={Coins} label="Treasury" {...navProps} />}
-            </>
+            </>  
           )}
           
           {(permissions.canAccessHr || permissions.canAccessAnalytics || permissions.canAccessSupport || permissions.canAccessLeads || permissions.canAccessSystemConfig) && (

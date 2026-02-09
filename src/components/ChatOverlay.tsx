@@ -1,43 +1,49 @@
 
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Message } from '../types';
-import { X, Send, ShieldCheck, AlertTriangle, DollarSign, Lock, ShieldAlert } from 'lucide-react';
+import { X, Send, ShieldCheck, AlertTriangle, DollarSign, Lock, ShieldAlert, Mail, Loader2 } from 'lucide-react';
 import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
+import { useToast } from '../contexts/ToastContext';
 
 interface ChatOverlayProps {
   recipientName: string;
   recipientAvatar: string;
+  recipientEmail: string; // Added for sending real emails
   onClose: () => void;
   onNavigateToBooking: () => void;
   onBlockUser: () => void;
 }
 
-const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvatar, onClose, onNavigateToBooking, onBlockUser }) => {
+const ChatOverlay: React.FC<ChatOverlayProps> = ({ 
+  recipientName, 
+  recipientAvatar, 
+  recipientEmail, 
+  onClose, 
+  onNavigateToBooking, 
+  onBlockUser 
+}) => {
   const [messages, setMessages] = useState<Message[]>([
     { 
       id: '1', 
-      sender: 'them', 
-      text: 'Hey! Thanks for reaching out. I am available for bookings in October.', 
-      timestamp: '10:32 AM' 
+      sender: 'system', 
+      text: `This is the start of your direct messaging thread with ${recipientName}. Messages are sent via email.`, 
+      timestamp: 'Just now' 
     }
   ]);
   const [input, setInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { notify } = useToast();
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Business Logic Enforcement: Keywords that suggest off-platform activity
   const FORBIDDEN_KEYWORDS = ['venmo', 'paypal', 'cashapp', 'zelle', 'gmail', 'yahoo', 'whatsapp', 'telegram', 'wire', 'bank transfer'];
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isSending) return;
 
-    // 1. Check for Illicit/Foul Content (Immediate Ban)
     if (checkContentForViolation(input)) {
         onBlockUser();
         return;
@@ -46,7 +52,6 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvata
     const lowerInput = input.toLowerCase();
     const containsForbidden = FORBIDDEN_KEYWORDS.some(keyword => lowerInput.includes(keyword));
 
-    // Optimistic update for user message
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'me',
@@ -56,8 +61,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvata
 
     setMessages(prev => [...prev, newMessage]);
     setInput('');
-
-    // If forbidden keywords detected, trigger system warning
+    
     if (containsForbidden) {
       setTimeout(() => {
         const warningMsg: Message = {
@@ -69,22 +73,50 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvata
         };
         setMessages(prev => [...prev, warningMsg]);
       }, 500);
-    } else {
-      // Simulate reply
-      setTimeout(() => {
-         const replyMsg: Message = {
-           id: (Date.now() + 2).toString(),
-           sender: 'them',
-           text: 'Sounds good! Please send an official offer so we can lock the date.',
-           timestamp: 'Just now'
-         };
-         setMessages(prev => [...prev, replyMsg]);
-      }, 2000);
+      return; // Stop further processing
+    }
+    
+    setIsSending(true);
+
+    try {
+      // DEFINITIVE FIX: Use the /send-email endpoint
+      const response = await fetch('http://localhost:3001/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              to: recipientEmail,
+              subject: `New Message from a KalaKrut User`,
+              html: `<p>You have a new message from the KalaKrut portal:</p><blockquote>${newMessage.text}</blockquote><p>Reply directly to this email to continue the conversation.</p>`
+          })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send email');
+      }
+
+      // Add a system confirmation message
+      const confirmationMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'system',
+        text: 'Message sent successfully via email.',
+        timestamp: 'Just now'
+      };
+      setMessages(prev => [...prev, confirmationMsg]);
+      notify('Message sent!', 'success');
+
+    } catch (error) {
+      console.error("Email sending error:", error);
+      notify('Failed to send message. Please try again.', 'error');
+      // Optionally, mark the sent message as failed
+      setMessages(prev => prev.map(m => m.id === newMessage.id ? { ...m, error: true } : m));
+    } finally {
+      setIsSending(false);
     }
   };
-
+  
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSend();
     }
   };
@@ -96,7 +128,7 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvata
         <div className="flex items-center gap-3">
           <div className="relative">
             <img src={recipientAvatar} alt="" className="w-10 h-10 rounded-full border border-kala-600 object-cover" />
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-kala-800"></div>
+             <Mail className="absolute -bottom-1 -right-1 w-4 h-4 text-white bg-green-500 rounded-full p-0.5 border border-kala-800" />
           </div>
           <div>
             <h3 className="font-bold text-white text-sm">{recipientName}</h3>
@@ -136,19 +168,20 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvata
                   </div>
                </div>
             ) : msg.sender === 'system' ? (
-               <div className="w-full text-center text-xs text-kala-500 my-2 italic">
+               <div className="w-full text-center text-xs text-kala-500 my-2 italic px-4">
                   {msg.text}
                </div>
             ) : (
-              <div className={`max-w-[80%] p-3 rounded-2xl ${
+              <div className={`max-w-[80%] p-3 rounded-2xl flex flex-col ${
                 msg.sender === 'me' 
                 ? 'bg-kala-secondary text-kala-900 rounded-tr-none' 
                 : 'bg-kala-800 text-slate-200 rounded-tl-none'
               }`}>
                 <p className="text-sm">{msg.text}</p>
-                <p className={`text-[10px] mt-1 text-right ${msg.sender === 'me' ? 'text-kala-800/60' : 'text-kala-500'}`}>
-                  {msg.timestamp}
-                </p>
+                <div className={`flex items-center justify-end gap-1 text-[10px] mt-1 ${msg.sender === 'me' ? 'text-kala-800/60' : 'text-kala-500'}`}>
+                  {msg.error && <span className="text-red-500 font-bold">Failed</span>}
+                  <span>{msg.timestamp}</span>
+                </div>
               </div>
             )}
           </div>
@@ -176,12 +209,14 @@ const ChatOverlay: React.FC<ChatOverlayProps> = ({ recipientName, recipientAvata
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className="w-full bg-kala-800 border border-kala-700 rounded-full pl-4 pr-12 py-3 text-sm text-white focus:ring-1 focus:ring-kala-secondary focus:border-kala-secondary outline-none transition-all"
+            disabled={isSending}
           />
           <button 
             onClick={handleSend}
-            className="absolute right-2 top-1.5 p-1.5 bg-kala-secondary rounded-full text-kala-900 hover:bg-cyan-400 transition-colors"
+            disabled={isSending || !input.trim()}
+            className="absolute right-2 top-1.5 p-1.5 bg-kala-secondary rounded-full text-kala-900 hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-4 h-4" />
+            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </div>
       </div>

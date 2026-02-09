@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { MarketplaceItem } from '../types';
 import { useData } from '../contexts/DataContext';
-import { ShoppingBag, Clock, Search, X, CheckCircle, Plus, ShieldAlert, UploadCloud, MessageCircle, Eye, Tag, AlertCircle } from 'lucide-react';
+import { ShoppingBag, Clock, Search, X, CheckCircle, Plus, ShieldAlert, UploadCloud, MessageCircle, Eye, Tag, AlertCircle, Loader2 } from 'lucide-react';
 import PaymentGateway from '../components/PaymentGateway';
 import { checkContentForViolation, MODERATION_WARNING_TEXT } from '../services/moderationService';
 import { useToast } from '../contexts/ToastContext';
@@ -13,7 +13,7 @@ interface MarketplaceProps {
 }
 
 const Marketplace: React.FC<MarketplaceProps> = ({ onBlockUser, onChat }) => {
-  const { marketItems, addMarketItem } = useData();
+  const { marketplaceItems: marketItems, addMarketItem, loading } = useData();
   const { notify } = useToast();
   const [filter, setFilter] = useState('All');
   const [viewingItem, setViewingItem] = useState<MarketplaceItem | null>(null);
@@ -24,6 +24,17 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onBlockUser, onChat }) => {
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
   const [newItemType, setNewItemType] = useState('Physical Art');
+
+  // --- DEFINITIVE FIX: GUARD CLAUSE ---
+  // This prevents the component from crashing if the data is loading or not an array.
+  if (loading || !Array.isArray(marketItems)) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-kala-secondary animate-spin" />
+        <p className="ml-4 text-white">Loading Marketplace...</p>
+      </div>
+    );
+  }
 
   const filters = ['All', 'NFT', 'Physical Art', 'Instrument', 'Ticket', 'Equipment'];
   const items = filter === 'All' ? marketItems : marketItems.filter(i => i.type === filter);
@@ -146,7 +157,7 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onBlockUser, onChat }) => {
               </div>
               
               <h3 className="font-bold text-slate-100 mb-1 truncate">{item.title}</h3>
-              <p className="text-xs text-kala-500 line-clamp-2 h-8 mb-2">{item.description}</p>
+              <p className="text-xs text-kala-500 line-clamp-2 h-8 mb-2">{item.description || ''}</p>
               
               <div className="mt-auto pt-3 border-t border-kala-700/50 flex items-center justify-between">
                 <div>
